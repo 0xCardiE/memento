@@ -1,7 +1,5 @@
 import type { HardhatUserConfig } from "hardhat/config";
 
-import hardhatVerify from "@nomicfoundation/hardhat-verify";
-import hardhatIgnition from "@nomicfoundation/hardhat-ignition";
 import { configVariable } from "hardhat/config";
 
 const config: HardhatUserConfig = {
@@ -9,7 +7,7 @@ const config: HardhatUserConfig = {
    * In Hardhat 3, plugins are defined as part of the Hardhat config instead of
    * being based on the side-effect of imports.
    */
-  plugins: [hardhatVerify, hardhatIgnition],
+  plugins: [],
   solidity: {
     /*
      * Hardhat 3 supports different build profiles, allowing you to configure
@@ -75,14 +73,6 @@ const config: HardhatUserConfig = {
       chainType: "l1",
       url: configVariable("SEPOLIA_RPC_URL"),
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
-    },
-  },
-  /*
-   * Configuration for contract verification
-   */
-  verify: {
-    etherscan: {
-      apiKey: configVariable("ETHERSCAN_API_KEY"),
     },
   },
 };
