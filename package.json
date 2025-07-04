@@ -1,0 +1,12 @@
+{
+  "name": "memento",
+  "type": "module",
+  "version": "1.0.0",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^0.15.12",
+    "@nomicfoundation/hardhat-toolbox-viem": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^3.0.0-next.21",
+    "hardhat": "^3.0.0-next.21",
+    "viem": "^2.31.7"
+  }
+}
