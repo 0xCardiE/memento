@@ -1,73 +1,85 @@
-# Hardhat 3 Alpha: `node:test` and `viem` example project
+# MementoVol1 - NFT Memory Minting Platform
 
-> **WARNING**: This example project uses Hardhat 3, which is still in development. Hardhat 3 is not yet intended for production use.
+A full-stack NFT minting platform built with Hardhat 3, Next.js 15, and RainbowKit that allows users to mint their memories as unique NFTs on the blockchain.
 
-Welcome to the Hardhat 3 alpha version! This project showcases some of the changes and new features coming in Hardhat 3.
-
-To learn more about the Hardhat 3 Alpha, please visit [its tutorial](https://hardhat.org/hardhat3-alpha). To share your feedback, join our [Hardhat 3 Alpha](https://hardhat.org/hardhat3-alpha-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new?template=hardhat-3-alpha.yml) in our GitHub issue tracker.
+This project uses Hardhat 3 Alpha, which is still in development and not yet intended for production use.
 
 ## Project Overview
 
-This example project includes:
+This project includes:
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+- **Smart Contract**: MementoVol1.sol - ERC-721 NFT contract for minting memories
+- **Frontend**: Next.js 15 app with RainbowKit wallet integration
+- **Testing**: Comprehensive Solidity unit tests for the smart contract
+- **Development**: Hardhat 3 configuration with deployment scripts
+- **Styling**: Custom CSS (no frameworks) for clean, responsive design
 
-## Navigating the Project
+## Features
 
-To get the most out of this example project, we recommend exploring the files in the following order:
-
-1. Read the `hardhat.config.ts` file, which contains the project configuration and explains multiple changes.
-2. Review the "Running Tests" section and explore the files in the `contracts/` and `test/` directories.
-3. Read the "Make a deployment to Sepolia" section and follow the instructions.
-
-Each file includes inline explanations of its purpose and highlights the changes and new features introduced in Hardhat 3.
+- **NFT Minting**: Users can mint their memories as ERC-721 NFTs with custom metadata
+- **Wallet Integration**: Seamless wallet connection using RainbowKit
+- **Payment System**: Built-in mint pricing (0.001 ETH per NFT)
+- **Responsive Design**: Clean, mobile-friendly interface
+- **Comprehensive Testing**: Full test coverage for smart contract functionality
 
 ## Usage
 
-### Running Tests
+### Frontend Development
 
-To run all the tests in the project, execute the following command:
+Start the Next.js development server:
 
 ```shell
-npx hardhat test
+npm run dev
 ```
 
-You can also selectively run the Solidity or `node:test` tests:
+The frontend will be available at `http://localhost:3000`
+
+### Smart Contract Testing
+
+Run the Solidity tests for the MementoVol1 contract:
 
 ```shell
 npx hardhat test solidity
-npx hardhat test nodejs
 ```
 
-### Make a deployment to Sepolia
+### Smart Contract Deployment
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
-
-To run the deployment to a local chain:
+Deploy the MementoVol1 contract to a local Hardhat network:
 
 ```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
+npx hardhat node
+# In another terminal:
+npx hardhat run scripts/deploy-memento.ts --network localhost
 ```
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
-
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
+To deploy to Sepolia testnet, first set your private key:
 
 ```shell
 npx hardhat keystore set SEPOLIA_PRIVATE_KEY
 ```
 
-After setting the variable, you can run the deployment with the Sepolia network:
+Then deploy:
 
 ```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
+npx hardhat run scripts/deploy-memento.ts --network sepolia
 ```
 
----
+### Other Commands
 
-Feel free to explore the project and provide feedback on your experience with Hardhat 3 Alpha!
+- `npm run format` - Format code with Prettier
+- `npm run hardhat:compile` - Compile smart contracts
+- `npm run hardhat:test` - Run Solidity tests
+- `npm run hardhat:node` - Start local Hardhat network
+
+## Project Structure
+
+```
+├── contracts/          # Smart contracts
+│   └── MementoVol1.sol # Main NFT contract
+├── test/               # Contract tests
+│   └── MementoVol1.t.sol # Solidity tests
+├── scripts/            # Deployment scripts
+├── app/                # Next.js frontend
+├── components/         # React components
+└── lib/                # Wagmi/Web3 configuration
+```
