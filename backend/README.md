@@ -36,10 +36,17 @@ The service uses a single optimized batch ID for all storage operations:
    ```env
    ADMIN_PRIVATE_KEY=your-admin-private-key-here
    CONTRACT_ADDRESS=0x5FbDB2315678afecb367f032d93F642f64180aa3
-   RPC_URL=http://127.0.0.1:8545
+   NETWORK=testnet
+   RPC_URL=https://testnet.evm.nodes.onflow.org
    OPENAI_API_KEY=your-openai-api-key-here
    SWARM_GATEWAY=http://localhost:5555
    ```
+
+   **Flow EVM Network Configuration**:
+   - **Testnet**: `https://testnet.evm.nodes.onflow.org` (Chain ID: 545)
+   - **Mainnet**: `https://mainnet.evm.nodes.onflow.org` (Chain ID: 747)
+   
+   Set `NETWORK=testnet` or `NETWORK=mainnet` to choose the appropriate network.
 
    **⚠️ Security Note**: Never commit your private keys to version control!
 

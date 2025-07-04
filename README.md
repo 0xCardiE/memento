@@ -1,6 +1,6 @@
 # Mement Machina - Vol 1 - NFT Memory Minting Platform
 
-A full-stack NFT minting platform built with Hardhat 3, Next.js 15, and RainbowKit that allows users to mint their memories as unique NFTs on the blockchain.
+A full-stack NFT minting platform built with Hardhat 3, Next.js 15, and RainbowKit that allows users to mint their memories as unique NFTs on Flow EVM blockchain.
 
 This project uses Hardhat 3 Alpha, which is still in development and not yet intended for production use.
 
@@ -67,35 +67,28 @@ npm run setup-hardhat
 
 **Step-by-step setup example:**
 
-1. **Set your Sepolia testnet private key** (required for deployment):
+1. **Set your Flow EVM testnet private key** (required for deployment):
    ```shell
-   export HARDHAT_VAR_SEPOLIA_PRIVATE_KEY="0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+   export HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY="0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
    ```
 
-2. **Set your Sepolia RPC URL** (get from Alchemy, Infura, etc.):
+2. **Optional: Set mainnet variables for production**:
    ```shell
-   export HARDHAT_VAR_SEPOLIA_RPC_URL="https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
+   export HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY="0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
    ```
 
-3. **Optional: Set mainnet variables for production**:
-   ```shell
-   export HARDHAT_VAR_MAINNET_PRIVATE_KEY="0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-   export HARDHAT_VAR_MAINNET_RPC_URL="https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY"
-   ```
-
-4. **Optional: Set API keys for contract verification**:
-   ```shell
-   export HARDHAT_VAR_ETHERSCAN_API_KEY="YOUR_ETHERSCAN_API_KEY_HERE"
-   ```
+**Flow EVM Network Information:**
+- **Testnet**: `https://testnet.evm.nodes.onflow.org` (Chain ID: 545)
+- **Mainnet**: `https://mainnet.evm.nodes.onflow.org` (Chain ID: 747)
+- **Block Explorer**: [Flow EVM Explorer](https://evm.flowscan.io)
 
 **Making variables persistent (recommended):**
 
 Add these to your shell profile (`.bashrc`, `.zshrc`, etc.) to make them permanent:
 ```shell
 # Add to ~/.zshrc or ~/.bashrc
-export HARDHAT_VAR_SEPOLIA_PRIVATE_KEY="your_sepolia_private_key"
-export HARDHAT_VAR_SEPOLIA_RPC_URL="https://eth-sepolia.g.alchemy.com/v2/your_api_key"
-export HARDHAT_VAR_ETHERSCAN_API_KEY="your_etherscan_api_key"
+export HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY="your_flow_testnet_private_key"
+export HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY="your_flow_mainnet_private_key"
 
 # Then reload your shell
 source ~/.zshrc  # or source ~/.bashrc
@@ -105,9 +98,8 @@ source ~/.zshrc  # or source ~/.bashrc
 ```shell
 # Create a file: scripts/env-vars.sh
 #!/bin/bash
-export HARDHAT_VAR_SEPOLIA_PRIVATE_KEY="your_private_key"
-export HARDHAT_VAR_SEPOLIA_RPC_URL="https://eth-sepolia.g.alchemy.com/v2/your_api_key"
-export HARDHAT_VAR_ETHERSCAN_API_KEY="your_etherscan_api_key"
+export HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY="your_private_key"
+export HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY="your_private_key"
 
 # Source it before running hardhat commands
 source scripts/env-vars.sh
@@ -126,14 +118,13 @@ source scripts/my-env-vars.sh
 **Example: Complete setup flow**
 ```shell
 # Set required variables
-export HARDHAT_VAR_SEPOLIA_PRIVATE_KEY="your_private_key"
-export HARDHAT_VAR_SEPOLIA_RPC_URL="https://eth-sepolia.g.alchemy.com/v2/your_api_key"
+export HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY="your_private_key"
 
 # Test compilation
 npm run hardhat:compile
 
-# Deploy to Sepolia
-npx hardhat run scripts/deploy-memento.ts --network sepolia
+# Deploy to Flow EVM Testnet
+npx hardhat run scripts/deploy-memento.ts --network flowTestnet
 ```
 
 #### 2. Frontend Environment Variables (.env)
@@ -150,14 +141,14 @@ Edit `.env` and fill in these **Next.js specific values**:
 # Frontend configuration only - these are safe to commit as examples
 NEXT_PUBLIC_APP_NAME=Mement Machina - Vol 1
 NEXT_PUBLIC_APP_DESCRIPTION=Mint your memories as unique NFTs
-NEXT_PUBLIC_DEFAULT_CHAIN=sepolia
+NEXT_PUBLIC_DEFAULT_CHAIN=flowTestnet
 
 # You need to get this from WalletConnect Cloud
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id_here
 
 # Contract addresses (update after deployment)
-NEXT_PUBLIC_MEMENTO_CONTRACT_SEPOLIA=0x1234567890123456789012345678901234567890
-NEXT_PUBLIC_MEMENTO_CONTRACT_MAINNET=0x1234567890123456789012345678901234567890
+NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_TESTNET=0x1234567890123456789012345678901234567890
+NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_MAINNET=0x1234567890123456789012345678901234567890
 ```
 
 **Check your .env configuration:**

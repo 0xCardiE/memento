@@ -1,10 +1,53 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
-import { mainnet, sepolia, hardhat } from 'wagmi/chains'
+import { defineChain } from 'viem'
+
+// Define Flow EVM chains
+export const flowTestnet = defineChain({
+  id: 545,
+  name: 'Flow EVM Testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Flow',
+    symbol: 'FLOW',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://testnet.evm.nodes.onflow.org'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Flow EVM Testnet Explorer',
+      url: 'https://evm-testnet.flowscan.io',
+    },
+  },
+})
+
+export const flowMainnet = defineChain({
+  id: 747,
+  name: 'Flow EVM Mainnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Flow',
+    symbol: 'FLOW',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://mainnet.evm.nodes.onflow.org'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Flow EVM Mainnet Explorer',
+      url: 'https://evm.flowscan.io',
+    },
+  },
+})
 
 export const config = getDefaultConfig({
-      appName: process.env.NEXT_PUBLIC_APP_NAME || 'Mement Machina - Vol 1',
+  appName: process.env.NEXT_PUBLIC_APP_NAME || 'Mement Machina - Vol 1',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'your-project-id',
-  chains: [hardhat, sepolia, mainnet],
+  chains: [flowTestnet, flowMainnet],
   ssr: true,
 })
 
@@ -466,7 +509,6 @@ export const MEMENTO_ABI = [
 
 // Contract addresses - loaded from environment variables
 export const CONTRACT_ADDRESSES = {
-  [hardhat.id]: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default Hardhat address
-  [sepolia.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_SEPOLIA || '', // Add Sepolia address when deployed
-  [mainnet.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_MAINNET || '', // Add Mainnet address when deployed
+  [flowTestnet.id]: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default Hardhat address
+  [flowMainnet.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_MAINNET || '', // Add Mainnet address when deployed
 } as const 

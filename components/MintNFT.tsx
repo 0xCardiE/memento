@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
 import { MEMENTO_ABI, CONTRACT_ADDRESSES } from '@/lib/wagmi'
-import { hardhat } from 'wagmi/chains'
+import { flowTestnet } from '../lib/wagmi'
 
 export default function MintNFT() {
   const { address, isConnected } = useAccount()
@@ -20,14 +20,14 @@ export default function MintNFT() {
 
   // Read the current generation price from the contract
   const { data: generationPrice } = useReadContract({
-    address: CONTRACT_ADDRESSES[hardhat.id] as `0x${string}`,
+    address: CONTRACT_ADDRESSES[flowTestnet.id] as `0x${string}`,
     abi: MEMENTO_ABI,
     functionName: 'generationPrice',
   })
 
   // Read total mementos count
   const { data: totalMementos } = useReadContract({
-    address: CONTRACT_ADDRESSES[hardhat.id] as `0x${string}`,
+    address: CONTRACT_ADDRESSES[flowTestnet.id] as `0x${string}`,
     abi: MEMENTO_ABI,
     functionName: 'totalMementos',
   })
@@ -38,7 +38,7 @@ export default function MintNFT() {
     setIsLoading(true)
     try {
       writeContract({
-        address: CONTRACT_ADDRESSES[hardhat.id] as `0x${string}`,
+        address: CONTRACT_ADDRESSES[flowTestnet.id] as `0x${string}`,
         abi: MEMENTO_ABI,
         functionName: 'requestMemento',
         args: [title, content, aiPrompt],

@@ -41,67 +41,26 @@ const config: HardhatUserConfig = {
     },
   },
   /*
-   * The `networks` configuration is mostly compatible with Hardhat 2.
-   * The key differences right now are:
-   *
-   * - You must set a `type` for each network, which is either `edr` or `http`,
-   *   allowing you to have multiple simulated networks.
-   *
-   * - You can set a `chainType` for each network, which is either `generic`,
-   *   `l1`, or `optimism`. This has two uses. It ensures that you always
-   *   connect to the network with the right Chain Type. And, on `edr`
-   *   networks, it makes sure that the simulated chain behaves exactly like the
-   *   real one. More information about this can be found in the test files.
-   *
-   * - The `accounts` field of `http` networks can also receive Configuration
-   *   Variables, which are values that only get loaded when needed. This allows
-   *   Hardhat to still run despite some of its config not being available
-   *   (e.g., a missing private key or API key). More info about this can be
-   *   found in the "Sending a Transaction to Optimism Sepolia" of the README.
+   * The `networks` configuration for Flow EVM networks.
+   * Flow EVM supports both mainnet and testnet deployments.
    */
   networks: {
-    // Local development networks
-    hardhatMainnet: {
-      type: "edr",
-      chainType: "l1",
-    },
-    hardhatOp: {
-      type: "edr",
-      chainType: "optimism",
-    },
-    
-    // Testnets
-    sepolia: {
-      type: "http",
-      chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
-    },
-    
-    // Mainnets
-    mainnet: {
-      type: "http",
-      chainType: "l1",
-      url: configVariable("MAINNET_RPC_URL"),
-      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
-    },
-    polygon: {
+    // Flow EVM Testnet
+    flowTestnet: {
       type: "http",
       chainType: "generic",
-      url: configVariable("POLYGON_RPC_URL"),
-      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
+      url: "https://testnet.evm.nodes.onflow.org",
+      accounts: [configVariable("FLOW_TESTNET_PRIVATE_KEY")],
+      chainId: 545,
     },
-    arbitrum: {
+    
+    // Flow EVM Mainnet
+    flowMainnet: {
       type: "http",
       chainType: "generic",
-      url: configVariable("ARBITRUM_RPC_URL"),
-      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
-    },
-    optimism: {
-      type: "http",
-      chainType: "optimism",
-      url: configVariable("OPTIMISM_RPC_URL"),
-      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
+      url: "https://mainnet.evm.nodes.onflow.org",
+      accounts: [configVariable("FLOW_MAINNET_PRIVATE_KEY")],
+      chainId: 747,
     },
   },
 };

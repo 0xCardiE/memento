@@ -1,15 +1,59 @@
 const { createPublicClient, createWalletClient, http, webSocket } = require("viem");
 const { privateKeyToAccount } = require('viem/accounts');
-const { hardhat } = require("viem/chains");
+const { defineChain } = require('viem');
 const OpenAI = require('openai');
 const fetch = require('node-fetch');
+
+// Define Flow EVM chains
+const flowTestnet = defineChain({
+  id: 545,
+  name: 'Flow EVM Testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Flow',
+    symbol: 'FLOW',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://testnet.evm.nodes.onflow.org'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Flow EVM Testnet Explorer',
+      url: 'https://evm-testnet.flowscan.io',
+    },
+  },
+});
+
+const flowMainnet = defineChain({
+  id: 747,
+  name: 'Flow EVM Mainnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Flow',
+    symbol: 'FLOW',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://mainnet.evm.nodes.onflow.org'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Flow EVM Mainnet Explorer',
+      url: 'https://evm.flowscan.io',
+    },
+  },
+});
 
 // Environment variables
 const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const RPC_URL = process.env.RPC_URL || "http://127.0.0.1:8545";
+const RPC_URL = process.env.RPC_URL || "https://testnet.evm.nodes.onflow.org";
 const SWARM_GATEWAY = process.env.SWARM_GATEWAY || "http://localhost:5555";
+const NETWORK = process.env.NETWORK || "testnet"; // "testnet" or "mainnet"
 
 // Validate required environment variables
 if (!ADMIN_PRIVATE_KEY) {
@@ -162,16 +206,24 @@ const openai = new OpenAI({
     apiKey: OPENAI_API_KEY,
 });
 
+// Get the correct chain based on environment
+const getChain = () => {
+    if (NETWORK === "mainnet") {
+        return flowMainnet;
+    }
+    return flowTestnet;
+};
+
 // Create clients
 const publicClient = createPublicClient({
-    chain: hardhat,
+    chain: getChain(),
     transport: http(RPC_URL),
 });
 
 const account = privateKeyToAccount(ADMIN_PRIVATE_KEY);
 const walletClient = createWalletClient({
     account,
-    chain: hardhat,
+    chain: getChain(),
     transport: http(RPC_URL),
 });
 

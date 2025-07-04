@@ -165,8 +165,8 @@ function checkHardhatVars() {
   console.log('   # Test compilation');
   console.log('   npm run hardhat:compile');
   console.log('   ');
-  console.log('   # Deploy to Sepolia');
-  console.log('   npx hardhat run scripts/deploy-memento.ts --network sepolia');
+  console.log('   # Deploy to Flow EVM Testnet');
+  console.log('   npx hardhat run scripts/deploy-memento.ts --network flowTestnet');
 }
 
 // Run the check
