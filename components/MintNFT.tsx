@@ -10,7 +10,7 @@ export default function MintNFT() {
   const { address, isConnected } = useAccount()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
+  const [aiPrompt, setAiPrompt] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
   const { data: hash, writeContract, error } = useWriteContract()
@@ -33,7 +33,7 @@ export default function MintNFT() {
   })
 
   const handleMint = async () => {
-    if (!isConnected || !title || !content || !mintPrice) return
+    if (!isConnected || !title || !content || !aiPrompt || !mintPrice) return
 
     setIsLoading(true)
     try {
@@ -41,7 +41,7 @@ export default function MintNFT() {
         address: CONTRACT_ADDRESSES[hardhat.id] as `0x${string}`,
         abi: MEMENTO_ABI,
         functionName: 'mintMemento',
-        args: [title, content, imageUrl],
+        args: [title, content, aiPrompt],
         value: mintPrice as bigint,
       })
     } catch (error) {
@@ -54,16 +54,28 @@ export default function MintNFT() {
   const resetForm = () => {
     setTitle('')
     setContent('')
-    setImageUrl('')
+    setAiPrompt('')
   }
 
   if (isSuccess) {
     return (
       <div className="max-w-md mx-auto mt-10 card status-success">
         <h2 className="text-2xl font-bold text-green-800 mb-4">🎉 NFT Minted Successfully!</h2>
-        <p className="text-green-700 mb-4">
-          Your memento has been minted as an NFT! Transaction hash: <code>{hash}</code>
-        </p>
+        <div className="text-green-700 mb-4 space-y-2">
+          <p>Your memento has been minted! Transaction hash: <code className="text-xs">{hash}</code></p>
+          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+            <h3 className="font-semibold text-green-800 mb-2">🤖 What happens next?</h3>
+            <ol className="text-sm space-y-1">
+              <li>1. Our AI will generate your image based on your prompt</li>
+              <li>2. The image will be uploaded to IPFS storage</li>
+              <li>3. Your NFT will be revealed with the final artwork</li>
+              <li>4. You'll be able to see your unique AI-generated image!</li>
+            </ol>
+            <p className="text-xs text-green-600 mt-2">
+              ⏱️ Reveal process typically takes 1-5 minutes
+            </p>
+          </div>
+        </div>
         <button
           onClick={resetForm}
           className="btn btn-success btn-full"
@@ -77,22 +89,30 @@ export default function MintNFT() {
   return (
     <div className="max-w-md mx-auto mt-10 card shadow-lg">
       <div className="card-header">
-        <h2 className="card-title">Mint Your Memento NFT</h2>
+        <h2 className="card-title">Mint Your AI Memento NFT</h2>
         
         <div className="mb-4">
           <p className="text-sm text-gray-600 mb-2">
             Total Mementos Minted: <span className="font-bold">{totalMementos ? totalMementos.toString() : '0'}</span>
           </p>
-          <p className="text-sm text-gray-600">
-            Mint Price: <span className="font-bold">{mintPrice ? formatEther(mintPrice) : '0'} ETH</span>
+          <p className="text-sm text-gray-600 mb-3">
+            Mint Price: <span className="font-bold">{mintPrice ? formatEther(mintPrice) : '0'} ETH (~$3)</span>
           </p>
+          
+          <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <h3 className="font-semibold text-blue-800 mb-2">🚀 Two-Step Process</h3>
+            <div className="text-xs text-blue-700 space-y-1">
+              <p><strong>Step 1:</strong> Pay & describe your memory + AI prompt</p>
+              <p><strong>Step 2:</strong> AI generates unique image & reveals your NFT</p>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="space-y-4">
         <div className="form-group">
           <label htmlFor="title" className="form-label">
-            Title *
+            Memory Title *
           </label>
           <input
             type="text"
@@ -100,43 +120,47 @@ export default function MintNFT() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="form-input"
-            placeholder="Enter your memento title"
+            placeholder="e.g., Summer at the Lake"
             required
           />
         </div>
 
         <div className="form-group">
           <label htmlFor="content" className="form-label">
-            Content *
+            Memory Description *
           </label>
           <textarea
             id="content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="form-textarea"
-            rows={4}
-            placeholder="Describe your memento..."
+            rows={3}
+            placeholder="Describe your memory in detail..."
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="imageUrl" className="form-label">
-            Image URL (optional)
+          <label htmlFor="aiPrompt" className="form-label">
+            AI Image Prompt * 🎨
           </label>
-          <input
-            type="url"
-            id="imageUrl"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="form-input"
-            placeholder="https://example.com/image.jpg"
+          <textarea
+            id="aiPrompt"
+            value={aiPrompt}
+            onChange={(e) => setAiPrompt(e.target.value)}
+            className="form-textarea"
+            rows={3}
+            placeholder="e.g., A serene lake at sunset with mountains in the background, golden light reflecting on the water, peaceful and nostalgic atmosphere"
+            required
           />
+          <p className="text-xs text-gray-500 mt-1">
+            💡 Be descriptive! This will generate your unique NFT artwork
+          </p>
         </div>
 
         <button
           onClick={handleMint}
-          disabled={!isConnected || !title || !content || isLoading || isConfirming}
+          disabled={!isConnected || !title || !content || !aiPrompt || isLoading || isConfirming}
           className="btn btn-primary btn-full"
         >
           {isLoading || isConfirming ? 'Minting...' : `Mint NFT (${mintPrice ? formatEther(mintPrice) : '0'} ETH)`}

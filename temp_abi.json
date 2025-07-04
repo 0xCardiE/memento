@@ -1,15 +1,4 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit'
-import { mainnet, sepolia, hardhat } from 'wagmi/chains'
-
-export const config = getDefaultConfig({
-      appName: process.env.NEXT_PUBLIC_APP_NAME || 'Mement Machina - Vol 1',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'your-project-id',
-  chains: [hardhat, sepolia, mainnet],
-  ssr: true,
-})
-
-// Contract ABI for Mement Machina Vol 1 (updated for two-step minting)
-export const MEMENTO_ABI = [
+[
   {
     "inputs": [],
     "stateMutability": "nonpayable",
@@ -200,7 +189,7 @@ export const MEMENTO_ABI = [
         "type": "uint256"
       },
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "address",
         "name": "creator",
         "type": "address"
@@ -238,12 +227,49 @@ export const MEMENTO_ABI = [
       },
       {
         "indexed": false,
+        "internalType": "string",
+        "name": "aiPrompt",
+        "type": "string"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
         "name": "timestamp",
         "type": "uint256"
       }
     ],
     "name": "MementoMinted",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "creator",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "imageUrl",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "MementoRevealed",
     "type": "event"
   },
   {
@@ -372,6 +398,19 @@ export const MEMENTO_ABI = [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getActiveMementoCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -385,19 +424,6 @@ export const MEMENTO_ABI = [
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getActiveMementoCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -452,6 +478,19 @@ export const MEMENTO_ABI = [
         "internalType": "bool",
         "name": "isRevealed",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getUnrevealedMementos",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "",
+        "type": "uint256[]"
       }
     ],
     "stateMutability": "view",
@@ -523,6 +562,25 @@ export const MEMENTO_ABI = [
     "inputs": [
       {
         "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "isRevealed",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
         "name": "",
         "type": "uint256"
       }
@@ -537,6 +595,11 @@ export const MEMENTO_ABI = [
       {
         "internalType": "string",
         "name": "content",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "aiPrompt",
         "type": "string"
       },
       {
@@ -558,6 +621,11 @@ export const MEMENTO_ABI = [
         "internalType": "string",
         "name": "imageUrl",
         "type": "string"
+      },
+      {
+        "internalType": "bool",
+        "name": "isRevealed",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -665,7 +733,51 @@ export const MEMENTO_ABI = [
   },
   {
     "inputs": [],
+    "name": "placeholderImageUrl",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "requestReveal",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "string",
+        "name": "_imageUrl",
+        "type": "string"
+      }
+    ],
+    "name": "revealMemento",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -748,6 +860,19 @@ export const MEMENTO_ABI = [
       }
     ],
     "name": "setMintPrice",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_newPlaceholderUrl",
+        "type": "string"
+      }
+    ],
+    "name": "setPlaceholderImageUrl",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -906,11 +1031,4 @@ export const MEMENTO_ABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   }
-] as const
-
-// Contract addresses - loaded from environment variables
-export const CONTRACT_ADDRESSES = {
-  [hardhat.id]: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default Hardhat address
-  [sepolia.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_SEPOLIA || '', // Add Sepolia address when deployed
-  [mainnet.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_MAINNET || '', // Add Mainnet address when deployed
-} as const 
+]
