@@ -34,8 +34,8 @@ const RECOMMENDED_ENV_VARS = {
   ETHERSCAN_API_KEY: 'Etherscan API key for contract verification',
   
   // Contract addresses
-  NEXT_PUBLIC_MEMENTO_CONTRACT_SEPOLIA: 'MementoVol1 contract address on Sepolia',
-  NEXT_PUBLIC_MEMENTO_CONTRACT_MAINNET: 'MementoVol1 contract address on Mainnet',
+  NEXT_PUBLIC_MEMENTO_CONTRACT_SEPOLIA: 'Mement Machina - Vol 1 contract address on Sepolia',
+  NEXT_PUBLIC_MEMENTO_CONTRACT_MAINNET: 'Mement Machina - Vol 1 contract address on Mainnet',
 };
 
 function checkEnvironmentVariables() {

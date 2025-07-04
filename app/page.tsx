@@ -14,7 +14,7 @@ function HomePage() {
           <div className="flex justify-between items-start header-responsive mb-8">
             <div className="header-content">
               <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                MementoVol1 🎨
+                Mement Machina - Vol 1 🎨
               </h1>
               <p className="text-xl text-gray-600">
                 Transform your precious memories into unique NFTs on the blockchain

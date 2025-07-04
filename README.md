@@ -1,4 +1,4 @@
-# MementoVol1 - NFT Memory Minting Platform
+# Mement Machina - Vol 1 - NFT Memory Minting Platform
 
 A full-stack NFT minting platform built with Hardhat 3, Next.js 15, and RainbowKit that allows users to mint their memories as unique NFTs on the blockchain.
 
@@ -148,7 +148,7 @@ cp .env.example .env
 Edit `.env` and fill in these **Next.js specific values**:
 ```env
 # Frontend configuration only - these are safe to commit as examples
-NEXT_PUBLIC_APP_NAME=MementoVol1
+NEXT_PUBLIC_APP_NAME=Mement Machina - Vol 1
 NEXT_PUBLIC_APP_DESCRIPTION=Mint your memories as unique NFTs
 NEXT_PUBLIC_DEFAULT_CHAIN=sepolia
 
@@ -254,7 +254,7 @@ The frontend configuration uses environment variables for public settings:
 
 ```typescript
 export const config = getDefaultConfig({
-  appName: process.env.NEXT_PUBLIC_APP_NAME || 'MementoVol1',
+  appName: process.env.NEXT_PUBLIC_APP_NAME || 'Mement Machina - Vol 1',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'your-project-id',
   chains: [hardhat, sepolia, mainnet],
   ssr: true,

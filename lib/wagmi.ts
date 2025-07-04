@@ -2,7 +2,7 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { mainnet, sepolia, hardhat } from 'wagmi/chains'
 
 export const config = getDefaultConfig({
-  appName: process.env.NEXT_PUBLIC_APP_NAME || 'MementoVol1',
+      appName: process.env.NEXT_PUBLIC_APP_NAME || 'Mement Machina - Vol 1',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'your-project-id',
   chains: [hardhat, sepolia, mainnet],
   ssr: true,
