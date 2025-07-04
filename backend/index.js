@@ -22,24 +22,8 @@ if (!OPENAI_API_KEY) {
     process.exit(1);
 }
 
-// SWARM batch IDs (from your existing index.js)
-const BATCH_IDS = [
-    {
-        id: "a35f1bb341d627e4b94a43b1f6a05b9c12cb88cad266a6d67f961c874529d966",
-        duration: 3 // 3 months
-    },
-    {
-        id: "59394a77db910c2c7e685e0b95436e22b20b84c5a7cef3fc20a7e3da16f632ac",
-        duration: 6 // 6 months
-    },
-    {
-        id: "6b4e0db0b13557b4fb5defd5d37bd3a3fdbcd0746405cf19324d0681f9f7f706",
-        duration: 12 // 12 months
-    }
-];
-
-// Default to 6 months batch for AI generated content
-const DEFAULT_BATCH_ID = BATCH_IDS[1].id;
+// Single SWARM batch ID for all storage operations
+const SWARM_BATCH_ID = "c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278";
 
 // Contract ABI for the events and functions we need
 const MEMENTO_ABI = [
@@ -157,6 +141,19 @@ const MEMENTO_ABI = [
         ],
         "stateMutability": "view",
         "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getPendingMementos",
+        "outputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     }
 ];
 
@@ -223,17 +220,15 @@ async function downloadImage(imageUrl) {
 // Store image on SWARM
 async function storeOnSwarm(imageBuffer, tokenId) {
     console.log(`📦 Storing image on SWARM for token ${tokenId}`);
+    console.log(`🐝 Using batch ID: ${SWARM_BATCH_ID}`);
     
     try {
-        // Create a unique filename for the image
-        const filename = `memento_${tokenId}_${Date.now()}.png`;
-        
-        // Upload to SWARM using the proxy (similar to your existing index.js)
+        // Upload to SWARM using the single batch ID
         const uploadResponse = await fetch(`${SWARM_GATEWAY}/bzz`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'image/png',
-                'Swarm-Postage-Batch-Id': DEFAULT_BATCH_ID,
+                'Swarm-Postage-Batch-Id': SWARM_BATCH_ID,
                 'Swarm-Tag': `memento-${tokenId}`,
                 'Swarm-Pin': 'true'
             },
@@ -241,7 +236,8 @@ async function storeOnSwarm(imageBuffer, tokenId) {
         });
 
         if (!uploadResponse.ok) {
-            throw new Error(`SWARM upload failed: ${uploadResponse.status}`);
+            const errorText = await uploadResponse.text();
+            throw new Error(`SWARM upload failed: ${uploadResponse.status} - ${errorText}`);
         }
 
         const result = await uploadResponse.json();
@@ -407,6 +403,7 @@ async function main() {
     console.log(`📡 Contract: ${CONTRACT_ADDRESS}`);
     console.log(`🌐 RPC URL: ${RPC_URL}`);
     console.log(`🐝 SWARM Gateway: ${SWARM_GATEWAY}`);
+    console.log(`📦 SWARM Batch ID: ${SWARM_BATCH_ID}`);
     console.log(`🎨 OpenAI API Key: ${OPENAI_API_KEY ? 'Configured' : 'Missing'}`);
     console.log(`🔑 Admin Account: ${account.address}\n`);
     

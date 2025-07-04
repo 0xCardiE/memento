@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'memento-ai-generator',
-      script: 'index2.js',
+      script: 'index.js',
       instances: 1,
       autorestart: true,
       watch: false,

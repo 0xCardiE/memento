@@ -2,10 +2,10 @@
   "name": "memento-backend",
   "version": "1.0.0",
   "description": "Backend service for Mement Machina Vol 1 NFT generation",
-  "main": "index2.js",
+  "main": "index.js",
   "scripts": {
-    "start": "pm2 start index2.js --name memento-ai-generator",
-    "dev": "nodemon index2.js",
+    "start": "pm2 start index.js --name memento-ai-generator",
+    "dev": "nodemon index.js",
     "stop": "pm2 stop memento-ai-generator",
     "restart": "pm2 restart memento-ai-generator",
     "logs": "pm2 logs memento-ai-generator",

@@ -5,11 +5,18 @@ This backend service listens for `MementoRequested` events from the smart contra
 ## Features
 
 - 🎨 **AI Image Generation**: Uses OpenAI DALL-E 3 for high-quality image generation
-- 📦 **SWARM Storage**: Decentralized storage using existing SWARM infrastructure
+- 📦 **SWARM Storage**: Decentralized storage with optimized single batch ID
 - ⛓️ **Smart Contract Integration**: Automatically updates NFT URIs after generation
 - 🔄 **Event Monitoring**: Watches for new memento requests in real-time
 - 🛡️ **Error Handling**: Robust error handling and retry logic
 - 🚀 **PM2 Process Management**: Production-ready process management with auto-restart
+
+## SWARM Configuration
+
+The service uses a single optimized batch ID for all storage operations:
+- **Batch ID**: `c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278`
+- **Storage Duration**: Permanent storage for all AI-generated NFT images
+- **Cost Optimization**: Single batch reduces complexity and management overhead
 
 ## Setup
 
@@ -44,7 +51,7 @@ This backend service listens for `MementoRequested` events from the smart contra
 npm run dev
 
 # or direct node execution
-node index2.js
+node index.js
 ```
 
 ### **Production Mode with PM2**
@@ -52,7 +59,7 @@ node index2.js
 4. **Start with PM2**
    ```bash
    # Start the AI generator service
-   pm2 start index2.js --name memento-ai-generator
+   pm2 start index.js --name memento-ai-generator
 
    # Start SWARM gateway (if needed)
    pm2 start index.js --name memento-swarm-gateway
@@ -100,7 +107,7 @@ module.exports = {
   apps: [
     {
       name: 'memento-ai-generator',
-      script: 'index2.js',
+      script: 'index.js',
       instances: 1,
       autorestart: true,
       watch: false,
@@ -126,7 +133,7 @@ pm2 start ecosystem.config.js
 
 1. **Event Listening**: The service monitors the smart contract for `MementoRequested` events
 2. **AI Generation**: When a new event is detected, it generates an image using the provided AI prompt
-3. **SWARM Storage**: The generated image is stored on the SWARM network
+3. **SWARM Storage**: The generated image is stored on the SWARM network using the optimized batch ID
 4. **NFT Update**: The NFT URI is updated with the final bzz.link URL
 
 ## Process Flow
@@ -136,7 +143,7 @@ User pays & submits prompt → Contract emits MementoRequested event
                                       ↓
 Backend detects event → Generate AI image with DALL-E
                                       ↓
-Download & store image on SWARM → Get bzz.link URL
+Download & store image on SWARM → Get bzz.link URL (using single batch ID)
                                       ↓
 Update NFT URI in contract → NFT now has final artwork
 ```
@@ -146,12 +153,13 @@ Update NFT URI in contract → NFT now has final artwork
 - **Final NFT Images**: `https://bzz.link/bzz/[swarm-hash]`
 - **Contract Events**: Monitored automatically via RPC connection
 - **SWARM Gateway**: `http://localhost:5555` (updated port)
+- **Batch ID**: `c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278`
 
 ## Error Handling
 
 The service includes comprehensive error handling:
 - **AI Generation Failures**: Logged and can be retried
-- **SWARM Upload Failures**: Automatic retry with different batch IDs
+- **SWARM Upload Failures**: Enhanced error reporting with batch ID validation
 - **Contract Update Failures**: Logged for manual intervention
 - **Network Issues**: Automatic reconnection and retry logic
 - **PM2 Auto-restart**: Automatically restarts if process crashes
@@ -174,7 +182,7 @@ pm2 status
 Watch the logs for real-time processing status:
 - 📡 Event detection
 - 🎨 AI generation progress
-- 📦 SWARM storage confirmations
+- 📦 SWARM storage confirmations (with batch ID)
 - ⛓️ Contract updates
 - 🎉 Success notifications
 
@@ -185,10 +193,11 @@ For production deployment:
 2. ✅ **Environment Variables** - Store all sensitive keys in `.env`
 3. ✅ **Logging** - PM2 handles log rotation and management
 4. ✅ **Monitoring** - Use PM2's built-in monitoring features
-5. **Security** - Use environment-specific private keys and contract addresses
-6. **Scaling** - Consider running multiple instances for high load
-7. **Alerts** - Set up alerts for failed generations or service downtime
-8. **Backup** - Monitor SWARM batch utilization and costs
+5. ✅ **SWARM Optimization** - Single batch ID reduces complexity
+6. **Security** - Use environment-specific private keys and contract addresses
+7. **Scaling** - Consider running multiple instances for high load
+8. **Alerts** - Set up alerts for failed generations or service downtime
+9. **Backup** - Monitor SWARM batch utilization and remaining capacity
 
 ## Troubleshooting
 
@@ -210,6 +219,9 @@ For production deployment:
    ```bash
    # Test SWARM gateway connection
    curl http://localhost:5555/health
+   
+   # Check batch ID validity
+   curl -X GET "http://localhost:5555/stamps/c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278"
    ```
 
 4. **Contract Connection Issues**

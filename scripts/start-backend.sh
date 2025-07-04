@@ -4,7 +4,7 @@
 echo "🚀 Starting Memento Backend Services with PM2..."
 
 # Check if we're in the right directory
-if [ ! -f "backend/index2.js" ]; then
+if [ ! -f "backend/index.js" ]; then
     echo "❌ Error: Please run this script from the project root directory"
     exit 1
 fi
@@ -55,7 +55,7 @@ sleep 3
 
 # Start AI generator service
 echo "🎨 Starting AI generator service with PM2..."
-pm2 start index2.js --name memento-ai-generator
+pm2 start index.js --name memento-ai-generator
 
 # Save PM2 configuration
 pm2 save
