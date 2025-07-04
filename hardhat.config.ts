@@ -60,6 +60,7 @@ const config: HardhatUserConfig = {
    *   found in the "Sending a Transaction to Optimism Sepolia" of the README.
    */
   networks: {
+    // Local development networks
     hardhatMainnet: {
       type: "edr",
       chainType: "l1",
@@ -68,11 +69,39 @@ const config: HardhatUserConfig = {
       type: "edr",
       chainType: "optimism",
     },
+    
+    // Testnets
     sepolia: {
       type: "http",
       chainType: "l1",
       url: configVariable("SEPOLIA_RPC_URL"),
       accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+    },
+    
+    // Mainnets
+    mainnet: {
+      type: "http",
+      chainType: "l1",
+      url: configVariable("MAINNET_RPC_URL"),
+      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
+    },
+    polygon: {
+      type: "http",
+      chainType: "generic",
+      url: configVariable("POLYGON_RPC_URL"),
+      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
+    },
+    arbitrum: {
+      type: "http",
+      chainType: "generic",
+      url: configVariable("ARBITRUM_RPC_URL"),
+      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
+    },
+    optimism: {
+      type: "http",
+      chainType: "optimism",
+      url: configVariable("OPTIMISM_RPC_URL"),
+      accounts: [configVariable("MAINNET_PRIVATE_KEY")],
     },
   },
 };

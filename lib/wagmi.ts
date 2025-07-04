@@ -2,8 +2,8 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { mainnet, sepolia, hardhat } from 'wagmi/chains'
 
 export const config = getDefaultConfig({
-  appName: 'MementoVol1',
-  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'your-project-id',
+  appName: process.env.NEXT_PUBLIC_APP_NAME || 'MementoVol1',
+  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'your-project-id',
   chains: [hardhat, sepolia, mainnet],
   ssr: true,
 })
@@ -903,9 +903,9 @@ export const MEMENTO_ABI = [
   }
 ] as const
 
-// Contract addresses - you'll need to update these with actual deployed addresses
+// Contract addresses - loaded from environment variables
 export const CONTRACT_ADDRESSES = {
   [hardhat.id]: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default Hardhat address
-  [sepolia.id]: '', // Add Sepolia address when deployed
-  [mainnet.id]: '', // Add Mainnet address when deployed
+  [sepolia.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_SEPOLIA || '', // Add Sepolia address when deployed
+  [mainnet.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_MAINNET || '', // Add Mainnet address when deployed
 } as const 
