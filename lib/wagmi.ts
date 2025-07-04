@@ -1,29 +1,12 @@
-import { http, createConfig } from 'wagmi'
+import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { mainnet, sepolia, hardhat } from 'wagmi/chains'
-import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors'
 
-// WalletConnect project ID
-const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'your-project-id'
-
-export const config = createConfig({
-  chains: [mainnet, sepolia, hardhat],
-  connectors: [
-    injected(),
-    coinbaseWallet(),
-    walletConnect({ projectId }),
-  ],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-    [hardhat.id]: http('http://127.0.0.1:8545'),
-  },
+export const config = getDefaultConfig({
+  appName: 'MementoVol1',
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || 'your-project-id',
+  chains: [hardhat, sepolia, mainnet],
+  ssr: true,
 })
-
-declare module 'wagmi' {
-  interface Register {
-    config: typeof config
-  }
-}
 
 // Contract ABI for MementoVol1
 export const MEMENTO_ABI = [

@@ -198,12 +198,29 @@ p {
   align-items: center;
 }
 
+.items-start {
+  align-items: flex-start;
+}
+
 .justify-center {
   justify-content: center;
 }
 
 .justify-between {
   justify-content: space-between;
+}
+
+/* Responsive header */
+@media (max-width: 768px) {
+  .header-responsive {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+  
+  .header-responsive .header-content {
+    text-align: center;
+  }
 }
 
 .gap-1 { gap: 0.25rem; }

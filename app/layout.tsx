@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import '@rainbow-me/rainbowkit/styles.css'
 import './globals.css'
 import Web3Provider from '@/components/Web3Provider'
 
