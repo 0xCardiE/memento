@@ -1,4 +1,5 @@
 import type { HardhatUserConfig } from "hardhat/config";
+import "@nomicfoundation/hardhat-toolbox-viem";
 
 import { configVariable } from "hardhat/config";
 
@@ -63,6 +64,43 @@ const config: HardhatUserConfig = {
       chainId: 747,
     },
   },
+  /*
+   * Contract verification configuration for Flow EVM networks.
+   * Based on Flow EVM quickstart guide: https://developers.flow.com/evm/quickstart
+   * 
+   * Note: Etherscan configuration may not be fully supported in Hardhat 3 Alpha.
+   * For contract verification, you can use the following commands after deployment:
+   * 
+   * Testnet: npx hardhat verify --network flowTestnet <contract_address>
+   * Mainnet: npx hardhat verify --network flowMainnet <contract_address>
+   */
+} as any; // Type assertion to allow etherscan configuration in Hardhat 3
+
+// Add etherscan configuration if supported
+(config as any).etherscan = {
+  apiKey: {
+    // API keys are not required by Flowscan. Can be any non-empty string
+    flowMainnet: "abc",
+    flowTestnet: "abc"
+  },
+  customChains: [
+    {
+      network: "flowMainnet",
+      chainId: 747,
+      urls: {
+        apiURL: "https://evm.flowscan.io/api",
+        browserURL: "https://evm.flowscan.io/",
+      },
+    },
+    {
+      network: "flowTestnet",
+      chainId: 545,
+      urls: {
+        apiURL: "https://evm-testnet.flowscan.io/api",
+        browserURL: "https://evm-testnet.flowscan.io/",
+      },
+    },
+  ],
 };
 
 export default config;

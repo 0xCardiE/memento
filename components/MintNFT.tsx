@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract, useChainId } from 'wagmi'
 import { parseEther, formatEther } from 'viem'
-import { MEMENTO_ABI, CONTRACT_ADDRESSES } from '@/lib/wagmi'
-import { flowTestnet } from '../lib/wagmi'
+import { MEMENTO_ABI, CONTRACT_ADDRESSES, flowTestnet, flowMainnet } from '@/lib/wagmi'
 
 export default function MintNFT() {
   const { address, isConnected } = useAccount()
+  const chainId = useChainId()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [aiPrompt, setAiPrompt] = useState('')
@@ -18,27 +18,35 @@ export default function MintNFT() {
     hash,
   })
 
+  // Get the contract address for the current network
+  const contractAddress = CONTRACT_ADDRESSES[chainId as keyof typeof CONTRACT_ADDRESSES]
+  
+  // Check if current network is supported
+  const isNetworkSupported = contractAddress !== undefined
+  const networkName = chainId === flowTestnet.id ? 'Flow Testnet' : 
+                     chainId === flowMainnet.id ? 'Flow Mainnet' : 'Unknown Network'
+
   // Read the current generation price from the contract
   const { data: generationPrice } = useReadContract({
-    address: CONTRACT_ADDRESSES[flowTestnet.id] as `0x${string}`,
+    address: contractAddress as `0x${string}`,
     abi: MEMENTO_ABI,
     functionName: 'generationPrice',
   })
 
   // Read total mementos count
   const { data: totalMementos } = useReadContract({
-    address: CONTRACT_ADDRESSES[flowTestnet.id] as `0x${string}`,
+    address: contractAddress as `0x${string}`,
     abi: MEMENTO_ABI,
     functionName: 'totalMementos',
   })
 
   const handleSubmit = async () => {
-    if (!isConnected || !title || !content || !aiPrompt || !generationPrice) return
+    if (!isConnected || !title || !content || !aiPrompt || !generationPrice || !contractAddress) return
 
     setIsLoading(true)
     try {
       writeContract({
-        address: CONTRACT_ADDRESSES[flowTestnet.id] as `0x${string}`,
+        address: contractAddress as `0x${string}`,
         abi: MEMENTO_ABI,
         functionName: 'requestMemento',
         args: [title, content, aiPrompt],
@@ -57,12 +65,35 @@ export default function MintNFT() {
     setAiPrompt('')
   }
 
+  // Show network error if not supported
+  if (!isNetworkSupported) {
+    return (
+      <div className="max-w-md mx-auto mt-10 card status-error">
+        <h2 className="text-2xl font-bold text-red-800 mb-4">🚫 Unsupported Network</h2>
+        <div className="text-red-700 mb-4 space-y-2">
+          <p>You're connected to <strong>{networkName}</strong> (Chain ID: {chainId})</p>
+          <p>Please switch to one of these supported networks:</p>
+          <ul className="text-sm space-y-1 ml-4">
+            <li>• <strong>Flow EVM Testnet</strong> (Chain ID: 545)</li>
+            <li>• <strong>Flow EVM Mainnet</strong> (Chain ID: 747)</li>
+          </ul>
+        </div>
+        <div className="bg-red-50 p-3 rounded-lg border border-red-200">
+          <p className="text-xs text-red-600">
+            💡 Switch networks in your wallet to use this app
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   if (isSuccess) {
     return (
       <div className="max-w-md mx-auto mt-10 card status-success">
         <h2 className="text-2xl font-bold text-green-800 mb-4">🎉 NFT Request Submitted!</h2>
         <div className="text-green-700 mb-4 space-y-2">
-          <p>Your memento request has been submitted! Transaction hash: <code className="text-xs">{hash}</code></p>
+          <p>Your memento request has been submitted on <strong>{networkName}</strong>!</p>
+          <p>Transaction hash: <code className="text-xs">{hash}</code></p>
           <div className="bg-green-50 p-3 rounded-lg border border-green-200">
             <h3 className="font-semibold text-green-800 mb-2">🤖 What happens next?</h3>
             <ol className="text-sm space-y-1">
@@ -93,10 +124,13 @@ export default function MintNFT() {
         
         <div className="mb-4">
           <p className="text-sm text-gray-600 mb-2">
+            Network: <span className="font-bold text-blue-600">{networkName}</span>
+          </p>
+          <p className="text-sm text-gray-600 mb-2">
             Total Mementos: <span className="font-bold">{totalMementos ? totalMementos.toString() : '0'}</span>
           </p>
           <p className="text-sm text-gray-600 mb-3">
-            Generation Price: <span className="font-bold">{generationPrice ? formatEther(generationPrice) : '0'} ETH (~$3)</span>
+            Generation Price: <span className="font-bold">{generationPrice ? formatEther(generationPrice) : '0'} FLOW (~$3)</span>
           </p>
           
           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
@@ -162,10 +196,10 @@ export default function MintNFT() {
 
         <button
           onClick={handleSubmit}
-          disabled={!isConnected || !title || !content || !aiPrompt || isLoading || isConfirming}
+          disabled={!isConnected || !title || !content || !aiPrompt || isLoading || isConfirming || !contractAddress}
           className="btn btn-primary btn-full"
         >
-          {isLoading || isConfirming ? 'Submitting...' : `Submit Request (${generationPrice ? formatEther(generationPrice) : '0'} ETH)`}
+          {isLoading || isConfirming ? 'Submitting...' : `Submit Request (${generationPrice ? formatEther(generationPrice) : '0'} FLOW)`}
         </button>
 
         {error && (

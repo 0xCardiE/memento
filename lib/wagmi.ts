@@ -509,6 +509,6 @@ export const MEMENTO_ABI = [
 
 // Contract addresses - loaded from environment variables
 export const CONTRACT_ADDRESSES = {
-  [flowTestnet.id]: '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Default Hardhat address
-  [flowMainnet.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_MAINNET || '', // Add Mainnet address when deployed
+  [flowTestnet.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_TESTNET || '0x5FbDB2315678afecb367f032d93F642f64180aa3', // Flow EVM Testnet
+  [flowMainnet.id]: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_MAINNET || '', // Flow EVM Mainnet
 } as const 

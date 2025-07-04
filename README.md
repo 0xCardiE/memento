@@ -166,6 +166,23 @@ npm run check-env
 
 ## Usage
 
+### Flow EVM Development
+
+**Flow EVM Faucet**: Get testnet FLOW tokens from the [Flow Faucet](https://testnet-faucet.onflow.org/) for testing your contracts.
+
+**Contract Verification**: Your contracts can be verified on Flowscan block explorers:
+- **Testnet**: https://evm-testnet.flowscan.io/
+- **Mainnet**: https://evm.flowscan.io/
+
+**Additional Dependencies for Flow EVM** (optional):
+```shell
+# For OpenZeppelin contracts (if using)
+npm install @openzeppelin/contracts
+
+# For contract upgrades (if needed)
+npm install @openzeppelin/hardhat-upgrades
+```
+
 ### Smart Contract Development
 
 **Check Hardhat configuration:**
@@ -183,22 +200,31 @@ npm run hardhat:compile
 npm run hardhat:test
 ```
 
-**Deploy to local network:**
+**Deploy to Flow EVM Testnet:**
 ```shell
-npm run hardhat:node
-# In another terminal:
-npm run hardhat:deploy
+# Set your private key
+export HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY="your_private_key"
+
+# Deploy
+npx hardhat run scripts/deploy-memento.ts --network flowTestnet
 ```
 
-**Deploy to Sepolia testnet:**
+**Deploy to Flow EVM Mainnet:**
 ```shell
-# Note: npx hardhat vars set commands are NOT available in Hardhat 3 Alpha
-# Use environment variables instead:
-export HARDHAT_VAR_SEPOLIA_PRIVATE_KEY="your_private_key"
-export HARDHAT_VAR_SEPOLIA_RPC_URL="https://eth-sepolia.g.alchemy.com/v2/your_api_key"
+# Set your private key
+export HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY="your_private_key"
 
-# Then deploy:
-npx hardhat run scripts/deploy-memento.ts --network sepolia
+# Deploy
+npx hardhat run scripts/deploy-memento.ts --network flowMainnet
+```
+
+**Verify contracts** (after deployment):
+```shell
+# Testnet
+npx hardhat verify --network flowTestnet <contract_address>
+
+# Mainnet  
+npx hardhat verify --network flowMainnet <contract_address>
 ```
 
 ### Frontend Development
