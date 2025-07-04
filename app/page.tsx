@@ -64,7 +64,48 @@ function HomePage() {
         </main>
 
         <footer className="mt-16 text-center text-gray-500">
-          <p>Built with Next.js 15, Hardhat 3, and Wagmi</p>
+          <p className="mb-4">Built with</p>
+          <div className="flex justify-center items-center gap-8 flex-wrap">
+            <a 
+              href="https://flow.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-blue-600 transition-colors"
+            >
+              <img 
+                src="https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/6343a5c8ad9a3b2c8c4b7d6b_flow-logo.png" 
+                alt="Flow" 
+                className="w-6 h-6"
+              />
+              <span className="font-semibold">Flow</span>
+            </a>
+            <a 
+              href="https://hardhat.org" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-yellow-600 transition-colors"
+            >
+              <img 
+                src="https://hardhat.org/favicon.ico" 
+                alt="Hardhat" 
+                className="w-6 h-6"
+              />
+              <span className="font-semibold">Hardhat 3</span>
+            </a>
+            <a 
+              href="https://www.ethswarm.org" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:text-orange-600 transition-colors"
+            >
+              <img 
+                src="https://www.ethswarm.org/assets/img/swarm-logo.svg" 
+                alt="Swarm" 
+                className="w-6 h-6"
+              />
+              <span className="font-semibold">Swarm</span>
+            </a>
+          </div>
         </footer>
       </div>
     </div>

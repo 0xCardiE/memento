@@ -1,32 +1,107 @@
-console.log("🚀 Mement Machina - Vol 1 Contract Deployment Script");
-console.log("=========================================");
+import { createWalletClient, createPublicClient, http } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { defineChain } from "viem";
 
-console.log("\n📝 To deploy the MementoVol1 contract:");
-console.log("1. Use the following command for local deployment:");
-console.log("   npx hardhat ignition deploy ignition/modules/MementoVol1.ts");
-console.log("   (Note: This requires the Hardhat Ignition plugin)");
+// Define Flow EVM chains
+const flowTestnet = defineChain({
+  id: 545,
+  name: 'Flow EVM Testnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Flow',
+    symbol: 'FLOW',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://testnet.evm.nodes.onflow.org'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Flow EVM Testnet Explorer',
+      url: 'https://evm-testnet.flowscan.io',
+    },
+  },
+});
 
-console.log("\n2. Alternative: Use Hardhat's built-in deployment via scripts:");
-console.log("   The Mement Machina - Vol 1 contract is ready for deployment!");
+const flowMainnet = defineChain({
+  id: 747,
+  name: 'Flow EVM Mainnet',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Flow',
+    symbol: 'FLOW',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://mainnet.evm.nodes.onflow.org'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Flow EVM Mainnet Explorer',
+      url: 'https://evm.flowscan.io',
+    },
+  },
+});
 
-console.log("\n📋 Contract Information:");
-console.log("- Contract Name: MementoVol1");
-console.log("- Location: contracts/MementoVol1.sol");
-console.log("- Test File: contracts/MementoVol1.t.sol");
-console.log("- Deployment Module: ignition/modules/MementoVol1.ts");
+async function main() {
+  console.log("🚀 Deploying Mement Machina - Vol 1 Contract to Flow EVM");
+  console.log("=========================================");
 
-console.log("\n🧪 Contract Features:");
-console.log("- Create mementos with title and content");
-console.log("- Update existing mementos (creator only)");
-console.log("- Deactivate mementos (creator only)");
-console.log("- View memento details");
-console.log("- Track user's mementos");
-console.log("- Count active mementos");
+  // Get network argument
+  const network = process.env.HARDHAT_NETWORK || "flowTestnet";
+  console.log(`📡 Network: ${network}`);
 
-console.log("\n✅ All tests passed: 12 tests for Mement Machina - Vol 1");
-console.log("✅ Contract compiled successfully");
+  // Get private key
+  const privateKey = process.env.HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY;
+  if (!privateKey) {
+    throw new Error("❌ HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY environment variable is required");
+  }
 
-console.log("\n🚀 Ready for deployment!");
-console.log("You can now deploy this contract to any supported network.");
+  // Determine chain
+  const chain = network === "flowMainnet" ? flowMainnet : flowTestnet;
+  console.log(`⛓️  Chain ID: ${chain.id} (${chain.name})`);
 
-export {}; 
+  // Create account and clients
+  const account = privateKeyToAccount(privateKey as `0x${string}`);
+  console.log(`👤 Deployer: ${account.address}`);
+
+  const publicClient = createPublicClient({
+    chain,
+    transport: http(),
+  });
+
+  const walletClient = createWalletClient({
+    account,
+    chain,
+    transport: http(),
+  });
+
+  // Check balance
+  const balance = await publicClient.getBalance({
+    address: account.address,
+  });
+  console.log(`💰 Balance: ${Number(balance) / 1e18} FLOW`);
+
+  if (balance === BigInt(0)) {
+    console.log("❌ Insufficient balance. Get testnet FLOW from: https://testnet-faucet.onflow.org/");
+    return;
+  }
+
+  // Contract bytecode and ABI (you'll need to get this from compilation)
+  console.log("📝 Deploying MementoVol1 contract...");
+  
+  // For now, we'll use a placeholder since we need the actual bytecode
+  console.log("✅ Contract ready for deployment!");
+  console.log("🔧 Note: You need to add the actual contract bytecode to complete deployment");
+  console.log(`🌐 Explorer: ${chain.blockExplorers.default.url}`);
+  console.log("💰 Get testnet FLOW: https://testnet-faucet.onflow.org/");
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error("❌ Deployment failed:", error);
+    process.exit(1);
+  }); 

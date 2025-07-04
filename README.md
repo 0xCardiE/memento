@@ -1,6 +1,20 @@
 # Mement Machina - Vol 1 - NFT Memory Minting Platform
 
-A full-stack NFT minting platform built with Hardhat 3, Next.js 15, and RainbowKit that allows users to mint their memories as unique NFTs on Flow EVM blockchain.
+A full-stack NFT minting platform built with Flow, Hardhat 3, and Swarm that allows users to mint their memories as unique NFTs with AI-generated artwork stored on decentralized storage.
+
+## 🛠️ Built With
+
+<div align="center">
+  
+[![Flow](https://img.shields.io/badge/Flow-00EF8B?style=for-the-badge&logo=flow&logoColor=white)](https://flow.com)
+[![Hardhat](https://img.shields.io/badge/Hardhat-FFF04D?style=for-the-badge&logo=hardhat&logoColor=black)](https://hardhat.org)
+[![Swarm](https://img.shields.io/badge/Swarm-FF6B35?style=for-the-badge&logo=ethereum&logoColor=white)](https://www.ethswarm.org)
+
+</div>
+
+- **[Flow](https://flow.com)** - EVM-compatible blockchain with native features and sponsored transactions
+- **[Hardhat 3](https://hardhat.org)** - Ethereum development environment for smart contract deployment and testing
+- **[Swarm](https://www.ethswarm.org)** - Decentralized storage network for storing AI-generated NFT artwork
 
 This project uses Hardhat 3 Alpha, which is still in development and not yet intended for production use.
 
@@ -8,19 +22,23 @@ This project uses Hardhat 3 Alpha, which is still in development and not yet int
 
 This project includes:
 
-- **Smart Contract**: MementoVol1.sol - ERC-721 NFT contract for minting memories
-- **Frontend**: Next.js 15 app with RainbowKit wallet integration
+- **Smart Contract**: MementoVol1.sol - ERC-721 NFT contract deployed on Flow EVM
+- **AI Generation**: OpenAI DALL-E 3 integration for creating unique artwork
+- **Decentralized Storage**: Swarm network for storing AI-generated images
+- **Backend Service**: Event-driven AI generation and NFT URI updates
+- **Frontend**: Next.js 15 app with Flow EVM wallet integration
 - **Testing**: Comprehensive Solidity unit tests for the smart contract
-- **Development**: Hardhat 3 configuration with deployment scripts
-- **Styling**: Custom CSS (no frameworks) for clean, responsive design
+- **Development**: Hardhat 3 configuration with Flow EVM deployment scripts
 
 ## Features
 
-- **NFT Minting**: Users can mint their memories as ERC-721 NFTs with custom metadata
-- **Wallet Integration**: Seamless wallet connection using RainbowKit
-- **Payment System**: Built-in mint pricing (0.001 ETH per NFT)
-- **Responsive Design**: Clean, mobile-friendly interface
-- **Comprehensive Testing**: Full test coverage for smart contract functionality
+- **AI-Generated NFTs**: Users submit memory prompts, AI creates unique artwork
+- **Pay-First System**: Payment before AI generation ensures guaranteed processing
+- **Flow EVM Integration**: Deployed on Flow blockchain with sponsored transactions
+- **Swarm Storage**: Decentralized storage for permanent artwork hosting
+- **Event-Driven Processing**: Automated backend processes NFT generation requests
+- **Multi-Network Support**: Works on both Flow EVM testnet and mainnet
+- **Real-time Updates**: NFT URIs automatically updated with final artwork URLs
 
 ## Setup
 
@@ -129,27 +147,30 @@ npx hardhat run scripts/deploy-memento.ts --network flowTestnet
 
 #### 2. Frontend Environment Variables (.env)
 
-**For Next.js frontend only** - we still use `.env` for frontend configuration because these are public variables that need to be available in the browser.
+**For Next.js frontend only** - we use `.env` for frontend configuration because these are public variables that need to be available in the browser.
 
-Copy the environment template for Next.js configuration:
+Copy the environment template:
 ```shell
 cp .env.example .env
 ```
 
-Edit `.env` and fill in these **Next.js specific values**:
+Edit `.env` and update these values:
 ```env
-# Frontend configuration only - these are safe to commit as examples
+# App Configuration
 NEXT_PUBLIC_APP_NAME=Mement Machina - Vol 1
-NEXT_PUBLIC_APP_DESCRIPTION=Mint your memories as unique NFTs
-NEXT_PUBLIC_DEFAULT_CHAIN=flowTestnet
+NEXT_PUBLIC_APP_DESCRIPTION=Mint your memories as unique NFTs on Flow EVM
 
-# You need to get this from WalletConnect Cloud
-NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id_here
+# WalletConnect Project ID - Get from https://cloud.walletconnect.com/
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_project_id_here
 
-# Contract addresses (update after deployment)
-NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_TESTNET=0x1234567890123456789012345678901234567890
-NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_MAINNET=0x1234567890123456789012345678901234567890
+# Flow EVM Contract Addresses (update after deployment)
+NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_TESTNET=0x5FbDB2315678afecb367f032d93F642f64180aa3
+NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_MAINNET=
 ```
+
+**Required Setup:**
+1. Get a WalletConnect Project ID from [WalletConnect Cloud](https://cloud.walletconnect.com/)
+2. Update contract addresses after deployment to Flow EVM networks
 
 **Check your .env configuration:**
 ```shell
