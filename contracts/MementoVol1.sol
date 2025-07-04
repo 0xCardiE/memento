@@ -12,58 +12,37 @@ contract MementoVol1 is ERC721, Ownable {
         address creator;
         uint256 timestamp;
         bool isActive;
-        string imageUrl;
-        bool isRevealed;
+        string imageUri;
+        bool isGenerated;
     }
 
     mapping(uint256 => Memento) public mementos;
     mapping(address => uint256[]) public userMementos;
+    
     uint256 public totalMementos;
     uint256 public nextTokenId;
-    uint256 public mintPrice = 0.003 ether; // ~$3 worth of ETH (approximate)
+    uint256 public generationPrice = 0.003 ether; // ~$3 worth of ETH
     
-    string public placeholderImageUrl = "https://ipfs.io/ipfs/QmPlaceholderHashForUnrevealedNFT";
+    string public placeholderImageUri = "https://via.placeholder.com/512x512.png?text=AI+Generation+Pending";
 
-    event MementoMinted(
+    event MementoRequested(
         uint256 indexed tokenId,
         address indexed creator,
         string title,
+        string content,
         string aiPrompt,
         uint256 timestamp
     );
 
-    event MementoRevealed(
+    event MementoGenerated(
         uint256 indexed tokenId,
         address indexed creator,
-        string imageUrl,
+        string imageUri,
         uint256 timestamp
     );
 
-    event MementoUpdated(
-        uint256 indexed tokenId,
-        address indexed creator,
-        string title,
-        uint256 timestamp
-    );
-
-    event MementoDeactivated(
-        uint256 indexed tokenId,
-        address indexed creator,
-        uint256 timestamp
-    );
-
-    modifier onlyMementoOwner(uint256 _tokenId) {
-        require(ownerOf(_tokenId) == msg.sender, "Not the owner of this memento NFT");
-        _;
-    }
-
-    modifier mementoExists(uint256 _tokenId) {
-        require(_tokenId < nextTokenId, "Memento NFT does not exist");
-        _;
-    }
-
-    modifier mementoActive(uint256 _tokenId) {
-        require(mementos[_tokenId].isActive, "Memento NFT is not active");
+    modifier onlyTokenExists(uint256 _tokenId) {
+        require(_tokenId < nextTokenId, "Token does not exist");
         _;
     }
 
@@ -73,27 +52,24 @@ contract MementoVol1 is ERC721, Ownable {
     }
 
     /**
-     * @dev Step 1: User pays and mints NFT with placeholder image
-     * @param _title Title of the memento
-     * @param _content Content/description of the memento
-     * @param _aiPrompt AI prompt for image generation
+     * @dev Step 1: User pays and submits prompt - emits event for backend processing
      */
-    function mintMemento(
-        string memory _title, 
+    function requestMemento(
+        string memory _title,
         string memory _content,
         string memory _aiPrompt
     ) external payable returns (uint256) {
-        require(msg.value >= mintPrice, "Insufficient payment for minting");
+        require(msg.value >= generationPrice, "Insufficient payment");
         require(bytes(_title).length > 0, "Title cannot be empty");
         require(bytes(_content).length > 0, "Content cannot be empty");
         require(bytes(_aiPrompt).length > 0, "AI prompt cannot be empty");
 
         uint256 tokenId = nextTokenId;
         
-        // Mint the NFT to the sender
+        // Mint the NFT to the user with placeholder image
         _safeMint(msg.sender, tokenId);
         
-        // Store the memento data with placeholder image
+        // Store the memento data with placeholder
         mementos[tokenId] = Memento({
             title: _title,
             content: _content,
@@ -101,90 +77,44 @@ contract MementoVol1 is ERC721, Ownable {
             creator: msg.sender,
             timestamp: block.timestamp,
             isActive: true,
-            imageUrl: placeholderImageUrl,
-            isRevealed: false
+            imageUri: placeholderImageUri,
+            isGenerated: false
         });
 
         userMementos[msg.sender].push(tokenId);
         totalMementos++;
         nextTokenId++;
 
-        emit MementoMinted(tokenId, msg.sender, _title, _aiPrompt, block.timestamp);
+        // Emit event for backend processing
+        emit MementoRequested(tokenId, msg.sender, _title, _content, _aiPrompt, block.timestamp);
         
         return tokenId;
     }
 
     /**
-     * @dev Step 2: Owner reveals the AI-generated image (after processing)
-     * @param _tokenId Token ID to reveal
-     * @param _imageUrl Generated image URL from AI + IPFS
+     * @dev Step 2: Backend updates URI after AI generation and SWARM storage (only once per NFT)
      */
-    function revealMemento(uint256 _tokenId, string memory _imageUrl) 
+    function updateMementoUri(uint256 _tokenId, string memory _imageUri) 
         external 
         onlyOwner 
-        mementoExists(_tokenId) 
-        mementoActive(_tokenId) 
+        onlyTokenExists(_tokenId) 
     {
-        require(!mementos[_tokenId].isRevealed, "Memento already revealed");
-        require(bytes(_imageUrl).length > 0, "Image URL cannot be empty");
+        require(!mementos[_tokenId].isGenerated, "NFT already generated - URI cannot be changed");
+        require(bytes(_imageUri).length > 0, "Image URI cannot be empty");
 
-        mementos[_tokenId].imageUrl = _imageUrl;
-        mementos[_tokenId].isRevealed = true;
+        mementos[_tokenId].imageUri = _imageUri;
+        mementos[_tokenId].isGenerated = true;
 
-        emit MementoRevealed(_tokenId, mementos[_tokenId].creator, _imageUrl, block.timestamp);
+        emit MementoGenerated(_tokenId, mementos[_tokenId].creator, _imageUri, block.timestamp);
     }
 
     /**
-     * @dev User can request reveal for their own NFT (triggers off-chain process)
-     * @param _tokenId Token ID to request reveal for
+     * @dev Get memento details
      */
-    function requestReveal(uint256 _tokenId) 
-        external 
-        mementoExists(_tokenId) 
-        onlyMementoOwner(_tokenId) 
-        mementoActive(_tokenId) 
-    {
-        require(!mementos[_tokenId].isRevealed, "Memento already revealed");
-        
-        // This function doesn't change state, just emits an event
-        // The backend will listen for this event and process the AI generation
-        emit MementoRevealed(_tokenId, msg.sender, "", block.timestamp);
-    }
-
-    /**
-     * @dev Update memento details (only for revealed mementos)
-     */
-    function updateMemento(
-        uint256 _tokenId,
-        string memory _title,
-        string memory _content
-    ) external mementoExists(_tokenId) onlyMementoOwner(_tokenId) mementoActive(_tokenId) {
-        require(bytes(_title).length > 0, "Title cannot be empty");
-        require(bytes(_content).length > 0, "Content cannot be empty");
-
-        mementos[_tokenId].title = _title;
-        mementos[_tokenId].content = _content;
-        mementos[_tokenId].timestamp = block.timestamp;
-
-        emit MementoUpdated(_tokenId, msg.sender, _title, block.timestamp);
-    }
-
-    function deactivateMemento(uint256 _tokenId) 
-        external 
-        mementoExists(_tokenId) 
-        onlyMementoOwner(_tokenId) 
-        mementoActive(_tokenId) 
-    {
-        mementos[_tokenId].isActive = false;
-        totalMementos--;
-
-        emit MementoDeactivated(_tokenId, msg.sender, block.timestamp);
-    }
-
     function getMemento(uint256 _tokenId) 
         external 
         view 
-        mementoExists(_tokenId) 
+        onlyTokenExists(_tokenId) 
         returns (
             string memory title,
             string memory content,
@@ -192,8 +122,8 @@ contract MementoVol1 is ERC721, Ownable {
             address creator,
             uint256 timestamp,
             bool isActive,
-            string memory imageUrl,
-            bool isRevealed
+            string memory imageUri,
+            bool isGenerated
         ) 
     {
         Memento memory memento = mementos[_tokenId];
@@ -204,56 +134,47 @@ contract MementoVol1 is ERC721, Ownable {
             memento.creator,
             memento.timestamp,
             memento.isActive,
-            memento.imageUrl,
-            memento.isRevealed
+            memento.imageUri,
+            memento.isGenerated
         );
+    }
+
+    /**
+     * @dev Get all pending (ungenerated) mementos for backend processing
+     */
+    function getPendingMementos() external view returns (uint256[] memory) {
+        uint256 count = 0;
+        
+        // Count pending mementos
+        for (uint256 i = 0; i < nextTokenId; i++) {
+            if (mementos[i].isActive && !mementos[i].isGenerated) {
+                count++;
+            }
+        }
+        
+        // Collect pending token IDs
+        uint256[] memory pendingTokens = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < nextTokenId; i++) {
+            if (mementos[i].isActive && !mementos[i].isGenerated) {
+                pendingTokens[index] = i;
+                index++;
+            }
+        }
+        
+        return pendingTokens;
     }
 
     function getUserMementos(address _user) external view returns (uint256[] memory) {
         return userMementos[_user];
     }
 
-    function getUserMementoCount(address _user) external view returns (uint256) {
-        return userMementos[_user].length;
+    function setGenerationPrice(uint256 _newPrice) external onlyOwner {
+        generationPrice = _newPrice;
     }
 
-    function getActiveMementoCount() external view returns (uint256) {
-        return totalMementos;
-    }
-
-    function getUnrevealedMementos() external view returns (uint256[] memory) {
-        uint256 count = 0;
-        
-        // First pass: count unrevealed mementos
-        for (uint256 i = 0; i < nextTokenId; i++) {
-            if (mementos[i].isActive && !mementos[i].isRevealed) {
-                count++;
-            }
-        }
-        
-        // Second pass: collect unrevealed token IDs
-        uint256[] memory unrevealedTokens = new uint256[](count);
-        uint256 index = 0;
-        for (uint256 i = 0; i < nextTokenId; i++) {
-            if (mementos[i].isActive && !mementos[i].isRevealed) {
-                unrevealedTokens[index] = i;
-                index++;
-            }
-        }
-        
-        return unrevealedTokens;
-    }
-
-    function isRevealed(uint256 _tokenId) external view mementoExists(_tokenId) returns (bool) {
-        return mementos[_tokenId].isRevealed;
-    }
-
-    function setMintPrice(uint256 _newPrice) external onlyOwner {
-        mintPrice = _newPrice;
-    }
-
-    function setPlaceholderImageUrl(string memory _newPlaceholderUrl) external onlyOwner {
-        placeholderImageUrl = _newPlaceholderUrl;
+    function setPlaceholderImageUri(string memory _newPlaceholderUri) external onlyOwner {
+        placeholderImageUri = _newPlaceholderUri;
     }
 
     function withdraw() external onlyOwner {
@@ -264,25 +185,21 @@ contract MementoVol1 is ERC721, Ownable {
         require(success, "Withdrawal failed");
     }
 
-    function tokenURI(uint256 _tokenId) public view override returns (string memory) {
-        require(_tokenId < nextTokenId, "Token does not exist");
-        
+    function tokenURI(uint256 _tokenId) public view override onlyTokenExists(_tokenId) returns (string memory) {
         Memento memory memento = mementos[_tokenId];
         
-        // Different metadata based on reveal status
-        string memory description = memento.isRevealed 
+        string memory description = memento.isGenerated 
             ? memento.content 
-            : string(abi.encodePacked(memento.content, " [UNREVEALED - AI IMAGE PENDING]"));
+            : string(abi.encodePacked(memento.content, " [AI IMAGE PENDING]"));
         
         return string(abi.encodePacked(
             '{"name":"', memento.title, 
             '","description":"', description,
-            '","image":"', memento.imageUrl,
+            '","image":"', memento.imageUri,
             '","attributes":[',
                 '{"trait_type":"Creator","value":"', _addressToString(memento.creator), '"},',
                 '{"trait_type":"Timestamp","value":"', _uint256ToString(memento.timestamp), '"},',
-                '{"trait_type":"Active","value":"', memento.isActive ? "true" : "false", '"},',
-                '{"trait_type":"Revealed","value":"', memento.isRevealed ? "true" : "false", '"},',
+                '{"trait_type":"Generated","value":"', memento.isGenerated ? "true" : "false", '"},',
                 '{"trait_type":"AI Prompt","value":"', memento.aiPrompt, '"}',
             ']}'
         ));

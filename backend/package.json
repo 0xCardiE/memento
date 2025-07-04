@@ -1,0 +1,38 @@
+{
+  "name": "memento-backend",
+  "version": "1.0.0",
+  "description": "Backend service for Mement Machina Vol 1 NFT generation",
+  "main": "index2.js",
+  "scripts": {
+    "start": "pm2 start index2.js --name memento-ai-generator",
+    "dev": "nodemon index2.js",
+    "stop": "pm2 stop memento-ai-generator",
+    "restart": "pm2 restart memento-ai-generator",
+    "logs": "pm2 logs memento-ai-generator",
+    "status": "pm2 status",
+    "start:ecosystem": "pm2 start ecosystem.config.js",
+    "save": "pm2 save"
+  },
+  "dependencies": {
+    "viem": "^2.21.0",
+    "openai": "^4.77.0",
+    "node-fetch": "^2.7.0",
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "pm2": "^5.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "nft",
+    "ai",
+    "swarm",
+    "blockchain",
+    "ethereum",
+    "dall-e",
+    "pm2"
+  ],
+  "author": "Mement Machina",
+  "license": "MIT"
+} 
