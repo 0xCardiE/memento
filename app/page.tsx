@@ -68,7 +68,7 @@ function HomePage() {
               <div className="text-8xl mb-8 opacity-50">🔐</div>
               <h2 className="text-3xl font-bold mb-4">Connect Your Wallet</h2>
               <p className="text-xl mb-8 max-w-2xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
-                Connect your Web3 wallet to add your layer to the Shared Sediments time capsule
+                Connect your Web3 wallet to add your story to the Shared Sediments time capsule
               </p>
               <ConnectButton />
             </div>

@@ -426,7 +426,7 @@ function MintNFTInner() {
           </h3>
           <div className="space-y-3" style={{ color: 'var(--text-secondary)' }}>
             <p><strong>Shared foundation</strong> - Every piece starts from the same geological pattern prompt, creating unity across the collection.</p>
-            <p><strong>Your personal layer</strong> - Your feelings and thoughts are woven into the shared canvas, making each NFT uniquely yours.</p>
+            <p><strong>Your personal story</strong> - Your feelings and thoughts are woven into the shared canvas, making each NFT uniquely yours.</p>
             <p><strong>Built to last</strong> - Stored on Swarm's decentralized network with DeFi-backed preservation, this Vol 1 collection is designed to endure.</p>
           </div>
         </div>
@@ -515,7 +515,7 @@ function MintNFTInner() {
                   ? 'Preparing Transaction...'
                   : isConfirming
                   ? 'Confirming Payment...'
-                  : `Add My Layer to Vol 1 (${currentPrice && totalMementos !== undefined && totalMementos < BigInt(200) ? '3.33' : '6.66'} FLOW)`
+                  : `Mint NFT (${currentPrice && totalMementos !== undefined && totalMementos < BigInt(200) ? '3.33' : '6.66'} FLOW)`
                 }
               </span>
             </button>
