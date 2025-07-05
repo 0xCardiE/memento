@@ -113,7 +113,9 @@ try {
   const networkCheck = await provider.getNetwork();
   console.log(`✅ Network connected: Chain ID ${networkCheck.chainId}, Name: ${networkCheck.name}`);
   
-  const latestBlock = await provider.getBlockNumber();
+  // Use direct RPC call for fresh block number
+  const rpcResponse = await provider.send('eth_blockNumber', []);
+  const latestBlock = parseInt(rpcResponse, 16);
   const blockDetails = await provider.getBlock(latestBlock);
   console.log(`📊 Latest block: ${latestBlock}, timestamp: ${blockDetails.timestamp}`);
   
@@ -300,7 +302,9 @@ async function startEventListener() {
     
     // More robust event listener with error handling for Flow EVM compatibility
     const eventFilter = contract.filters.MementoRequested();
-    let lastProcessedBlock = await provider.getBlockNumber();
+    // Use direct RPC call to avoid caching issues
+    const rpcResponse = await provider.send('eth_blockNumber', []);
+    let lastProcessedBlock = parseInt(rpcResponse, 16);
     
     console.log(`🔍 Starting from block: ${lastProcessedBlock}`);
     console.log(`🔍 Event filter:`, eventFilter);
@@ -340,8 +344,9 @@ async function startEventListener() {
     // Add a fallback polling mechanism for robustness
     const pollForEvents = async () => {
       try {
-        // Try fresh request to avoid caching issues
-        const currentBlock = await provider.getBlockNumber();
+        // Use direct RPC call to avoid caching issues
+        const rpcResponse = await provider.send('eth_blockNumber', []);
+        const currentBlock = parseInt(rpcResponse, 16);
         const currentTime = new Date().toISOString();
         
         console.log(`🔄 [${currentTime}] Polling: current block ${currentBlock}, last processed ${lastProcessedBlock}`);
@@ -364,18 +369,7 @@ async function startEventListener() {
               console.log(`⚠️ Block seems old - possible network sync issue`);
             }
             
-            // Try a direct RPC call to bypass any caching
-            try {
-              const rpcResponse = await provider.send('eth_blockNumber', []);
-              const rpcBlockNumber = parseInt(rpcResponse, 16);
-              console.log(`🔗 Direct RPC call: block ${rpcBlockNumber} (vs provider: ${currentBlock})`);
-              
-              if (rpcBlockNumber !== currentBlock) {
-                console.log(`⚠️ Provider block number differs from direct RPC - caching issue detected`);
-              }
-            } catch (rpcError) {
-              console.error(`❌ Direct RPC call failed:`, rpcError.message);
-            }
+
           } catch (blockError) {
             console.error(`❌ Failed to get block details:`, blockError.message);
           }
@@ -383,31 +377,42 @@ async function startEventListener() {
         
         if (currentBlock > lastProcessedBlock) {
           console.log(`🔄 Querying events from block ${lastProcessedBlock + 1} to ${currentBlock}`);
-          const events = await contract.queryFilter(
-            eventFilter,
-            lastProcessedBlock + 1,
-            currentBlock
-          );
           
-          console.log(`🔄 Found ${events.length} events`);
-          
-          for (const event of events) {
-            console.log(`🔄 Processing event from block ${event.blockNumber}`);
-            console.log(`🔄 Event details:`, event);
-            const { tokenId, creator, title, content, aiPrompt, timestamp } = event.args;
+          // Try multiple methods to fetch logs
+          try {
+            // Method 1: Contract queryFilter (what we're currently using)
+            const events = await contract.queryFilter(
+              eventFilter,
+              lastProcessedBlock + 1,
+              currentBlock
+            );
             
-            console.log(`🎯 Processing Token ID: ${tokenId.toString()}`);
-            console.log(`👤 Creator: ${creator}`);
-            console.log(`⏰ Timestamp: ${timestamp.toString()}`);
+            console.log(`🔄 Found ${events.length} events via queryFilter`);
             
-            try {
-              await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
-            } catch (error) {
-              console.error(`❌ Failed to process memento request:`, error.message);
+            
+            
+            // Process events from the working method
+            for (const event of events) {
+              console.log(`🔄 Processing event from block ${event.blockNumber}`);
+              console.log(`🔄 Event details:`, event);
+              const { tokenId, creator, title, content, aiPrompt, timestamp } = event.args;
+              
+              console.log(`🎯 Processing Token ID: ${tokenId.toString()}`);
+              console.log(`👤 Creator: ${creator}`);
+              console.log(`⏰ Timestamp: ${timestamp.toString()}`);
+              
+              try {
+                await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
+              } catch (error) {
+                console.error(`❌ Failed to process memento request:`, error.message);
+              }
             }
+            
+            lastProcessedBlock = currentBlock;
+          } catch (logError) {
+            console.error(`❌ Error fetching logs:`, logError.message);
+            console.error(`❌ Log error details:`, logError);
           }
-          
-          lastProcessedBlock = currentBlock;
         }
       } catch (error) {
         console.error(`⚠️ Polling error (continuing...):`, error.message);
