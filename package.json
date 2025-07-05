@@ -1,6 +1,6 @@
 {
   "name": "mement-machina-vol1",
-  "description": "Mement Machina - Vol 1: NFT Memory Minting Platform built with Flow, Hardhat 3 and Swarm",
+  "description": "Memento Machina: Geological Pattern NFT Generator built with Flow, Hardhat 3 and Swarm",
   "type": "module",
   "version": "1.0.0",
   "scripts": {

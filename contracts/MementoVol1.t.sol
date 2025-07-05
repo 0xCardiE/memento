@@ -1,36 +1,35 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { MementoVol1 } from "./MementoVol1.sol";
-import { Test } from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
+import {MementoVol1} from "./MementoVol1.sol";
 
 contract MementoVol1Test is Test {
     MementoVol1 mementoContract;
+    
     address alice = address(0x1);
     address bob = address(0x2);
-    uint256 mintPrice = 0.003 ether;
+    uint256 mintPrice = 6.66 ether;
 
     // Add receive function to accept ETH
     receive() external payable {}
 
     function setUp() public {
         mementoContract = new MementoVol1();
-        // Give alice and bob some ether for minting
-        vm.deal(alice, 10 ether);
+        vm.deal(alice, 100 ether);
         vm.deal(bob, 10 ether);
     }
 
     function test_InitialState() public view {
         assertEq(mementoContract.totalMementos(), 0);
         assertEq(mementoContract.nextTokenId(), 0);
-        assertEq(mementoContract.getActiveMementoCount(), 0);
-        assertEq(mementoContract.mintPrice(), mintPrice);
+        assertEq(mementoContract.generationPrice(), mintPrice);
     }
 
-    function test_MintMemento() public {
+    function test_RequestMemento() public {
         vm.startPrank(alice);
         
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
+        uint256 tokenId = mementoContract.requestMemento{value: mintPrice}(
             "My First Memory", 
             "This is my first memento content",
             "A beautiful landscape with mountains and a lake at sunset"
@@ -41,25 +40,25 @@ contract MementoVol1Test is Test {
         assertEq(mementoContract.nextTokenId(), 1);
         assertEq(mementoContract.ownerOf(tokenId), alice);
         
-        (string memory title, string memory content, string memory aiPrompt, address creator, uint256 timestamp, bool isActive, string memory imageUrl, bool isRevealed) = 
+        (string memory title, string memory content, string memory aiPrompt, address creator, uint256 timestamp, bool isActive, string memory imageUri, bool isGenerated) = 
             mementoContract.getMemento(tokenId);
         
         assertEq(title, "My First Memory");
         assertEq(content, "This is my first memento content");
         assertEq(aiPrompt, "A beautiful landscape with mountains and a lake at sunset");
         assertEq(creator, alice);
-        assertEq(imageUrl, mementoContract.placeholderImageUrl());
+        assertEq(imageUri, mementoContract.placeholderImageUri());
         assertTrue(isActive);
-        assertFalse(isRevealed);
+        assertFalse(isGenerated);
         assertGt(timestamp, 0);
         
         vm.stopPrank();
     }
 
-    function test_MintMementoInsufficientPayment() public {
+    function test_RequestMementoInsufficientPayment() public {
         vm.startPrank(alice);
-        vm.expectRevert("Insufficient payment for minting");
-        mementoContract.mintMemento{value: mintPrice - 1}(
+        vm.expectRevert("Insufficient payment");
+        mementoContract.requestMemento{value: mintPrice - 1}(
             "My Memory", 
             "Some content",
             "AI prompt for image"
@@ -67,200 +66,128 @@ contract MementoVol1Test is Test {
         vm.stopPrank();
     }
 
-    function test_MintMementoEmptyTitle() public {
+    function test_RequestMementoEmptyTitle() public {
         vm.startPrank(alice);
         vm.expectRevert("Title cannot be empty");
-        mementoContract.mintMemento{value: mintPrice}("", "Some content", "AI prompt");
+        mementoContract.requestMemento{value: mintPrice}("", "Some content", "AI prompt");
         vm.stopPrank();
     }
 
-    function test_MintMementoEmptyContent() public {
+    function test_RequestMementoEmptyContent() public {
         vm.startPrank(alice);
         vm.expectRevert("Content cannot be empty");
-        mementoContract.mintMemento{value: mintPrice}("Some title", "", "AI prompt");
+        mementoContract.requestMemento{value: mintPrice}("Some title", "", "AI prompt");
         vm.stopPrank();
     }
 
-    function test_MintMementoEmptyAIPrompt() public {
+    function test_RequestMementoEmptyAIPrompt() public {
         vm.startPrank(alice);
         vm.expectRevert("AI prompt cannot be empty");
-        mementoContract.mintMemento{value: mintPrice}("Some title", "Some content", "");
+        mementoContract.requestMemento{value: mintPrice}("Some title", "Some content", "");
         vm.stopPrank();
     }
 
-    function test_RevealMemento() public {
+    function test_UpdateMementoUri() public {
         vm.startPrank(alice);
         
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
+        uint256 tokenId = mementoContract.requestMemento{value: mintPrice}(
             "Original Title", 
             "Original Content",
             "Mountains and sunset landscape"
         );
         
-        // Check initial state - unrevealed
-        assertFalse(mementoContract.isRevealed(tokenId));
+        // Check initial state - not generated
+        (,,,,,, string memory initialImageUri, bool isGenerated) = mementoContract.getMemento(tokenId);
+        assertEq(initialImageUri, mementoContract.placeholderImageUri());
+        assertFalse(isGenerated);
         
         vm.stopPrank();
         
-        // Owner reveals the memento
-        string memory generatedImageUrl = "https://ipfs.io/ipfs/QmGeneratedImageHash";
-        mementoContract.revealMemento(tokenId, generatedImageUrl);
+        // Owner updates the memento URI after AI generation
+        string memory generatedImageUrl = "https://bzz.link/QmGeneratedImageHash";
+        mementoContract.updateMementoUri(tokenId, generatedImageUrl);
         
-        // Check revealed state
-        assertTrue(mementoContract.isRevealed(tokenId));
-        
-        (,,,,,, string memory imageUrl, bool isRevealed) = mementoContract.getMemento(tokenId);
-        assertEq(imageUrl, generatedImageUrl);
-        assertTrue(isRevealed);
+        // Check updated state
+        (,,,,,, string memory imageUri, bool isGeneratedAfter) = mementoContract.getMemento(tokenId);
+        assertEq(imageUri, generatedImageUrl);
+        assertTrue(isGeneratedAfter);
     }
 
-    function test_RevealMementoOnlyOwner() public {
+    function test_UpdateMementoUriOnlyOwner() public {
         vm.startPrank(alice);
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
+        uint256 tokenId = mementoContract.requestMemento{value: mintPrice}(
             "Alice's Memory", 
             "Alice's content",
             "Beautiful sunset over ocean"
         );
         
-        // Alice tries to reveal (should fail - only contract owner can reveal)
+        // Alice tries to update URI (should fail - only contract owner can update)
         vm.expectRevert();
-        mementoContract.revealMemento(tokenId, "https://ipfs.io/ipfs/QmSomeHash");
+        mementoContract.updateMementoUri(tokenId, "https://bzz.link/QmSomeHash");
         
         vm.stopPrank();
     }
 
-    function test_RevealMementoAlreadyRevealed() public {
+    function test_UpdateMementoUriAlreadyGenerated() public {
         vm.startPrank(alice);
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
+        uint256 tokenId = mementoContract.requestMemento{value: mintPrice}(
             "Test Memory", 
             "Test content",
             "Forest with tall trees"
         );
         vm.stopPrank();
         
-        // First reveal
-        mementoContract.revealMemento(tokenId, "https://ipfs.io/ipfs/QmHash1");
+        // First update
+        mementoContract.updateMementoUri(tokenId, "https://bzz.link/QmHash1");
         
-        // Second reveal should fail
-        vm.expectRevert("Memento already revealed");
-        mementoContract.revealMemento(tokenId, "https://ipfs.io/ipfs/QmHash2");
+        // Second update should fail
+        vm.expectRevert("NFT already generated - URI cannot be changed");
+        mementoContract.updateMementoUri(tokenId, "https://bzz.link/QmHash2");
     }
 
-    function test_RequestReveal() public {
-        vm.startPrank(alice);
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
-            "Request Test", 
-            "Test content",
-            "Cityscape at night"
-        );
-        
-        // Alice requests reveal for her NFT
-        mementoContract.requestReveal(tokenId);
-        
-        // Should still be unrevealed (requestReveal just emits event)
-        assertFalse(mementoContract.isRevealed(tokenId));
-        
-        vm.stopPrank();
-    }
-
-    function test_RequestRevealOnlyOwner() public {
-        vm.startPrank(alice);
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
-            "Alice's Memory", 
-            "Alice's content",
-            "Desert landscape"
-        );
-        vm.stopPrank();
-        
-        vm.startPrank(bob);
-        vm.expectRevert("Not the owner of this memento NFT");
-        mementoContract.requestReveal(tokenId);
-        vm.stopPrank();
-    }
-
-    function test_UpdateMemento() public {
+    function test_GetPendingMementos() public {
         vm.startPrank(alice);
         
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
-            "Original Title", 
-            "Original Content",
-            "Ocean waves at sunset"
+        // Request first memento
+        uint256 tokenId1 = mementoContract.requestMemento{value: mintPrice}(
+            "First Memory", 
+            "First content",
+            "Mountain landscape"
         );
         
-        mementoContract.updateMemento(tokenId, "Updated Title", "Updated Content");
-        
-        (string memory title, string memory content, string memory aiPrompt, address creator, uint256 timestamp, bool isActive, string memory imageUrl, bool isRevealed) = 
-            mementoContract.getMemento(tokenId);
-        
-        assertEq(title, "Updated Title");
-        assertEq(content, "Updated Content");
-        assertEq(aiPrompt, "Ocean waves at sunset"); // AI prompt should remain unchanged
-        assertEq(creator, alice);
-        assertEq(imageUrl, mementoContract.placeholderImageUrl()); // Still placeholder
-        assertTrue(isActive);
-        assertFalse(isRevealed);
-        
-        vm.stopPrank();
-    }
-
-    function test_UpdateMementoOnlyOwner() public {
-        vm.startPrank(alice);
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
-            "Alice's Memory", 
-            "Alice's content",
-            "Mountain peak covered in snow"
+        // Request second memento
+        uint256 tokenId2 = mementoContract.requestMemento{value: mintPrice}(
+            "Second Memory", 
+            "Second content",
+            "Ocean landscape"
         );
-        vm.stopPrank();
-        
-        vm.startPrank(bob);
-        vm.expectRevert("Not the owner of this memento NFT");
-        mementoContract.updateMemento(tokenId, "Bob's Update", "Bob's content");
-        vm.stopPrank();
-    }
-
-    function test_DeactivateMemento() public {
-        vm.startPrank(alice);
-        
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
-            "To be deactivated", 
-            "Content",
-            "Abandoned castle in mist"
-        );
-        assertEq(mementoContract.totalMementos(), 1);
-        
-        mementoContract.deactivateMemento(tokenId);
-        
-        (,,,,, bool isActive,,) = mementoContract.getMemento(tokenId);
-        assertFalse(isActive);
-        assertEq(mementoContract.totalMementos(), 0);
         
         vm.stopPrank();
-    }
-
-    function test_DeactivateMementoOnlyOwner() public {
-        vm.startPrank(alice);
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
-            "Alice's Memory", 
-            "Alice's content",
-            "Peaceful garden with flowers"
-        );
-        vm.stopPrank();
         
-        vm.startPrank(bob);
-        vm.expectRevert("Not the owner of this memento NFT");
-        mementoContract.deactivateMemento(tokenId);
-        vm.stopPrank();
+        // Check pending mementos
+        uint256[] memory pendingTokens = mementoContract.getPendingMementos();
+        assertEq(pendingTokens.length, 2);
+        assertEq(pendingTokens[0], tokenId1);
+        assertEq(pendingTokens[1], tokenId2);
+        
+        // Generate first memento
+        mementoContract.updateMementoUri(tokenId1, "https://bzz.link/QmHash1");
+        
+        // Check pending mementos again
+        pendingTokens = mementoContract.getPendingMementos();
+        assertEq(pendingTokens.length, 1);
+        assertEq(pendingTokens[0], tokenId2);
     }
 
     function test_GetUserMementos() public {
         vm.startPrank(alice);
         
-        uint256 memento1 = mementoContract.mintMemento{value: mintPrice}(
+        uint256 memento1 = mementoContract.requestMemento{value: mintPrice}(
             "Memory 1", 
             "Content 1",
             "Tropical beach with palm trees"
         );
-        uint256 memento2 = mementoContract.mintMemento{value: mintPrice}(
+        uint256 memento2 = mementoContract.requestMemento{value: mintPrice}(
             "Memory 2", 
             "Content 2",
             "Snow-covered forest path"
@@ -271,14 +198,13 @@ contract MementoVol1Test is Test {
         assertEq(userMementos.length, 2);
         assertEq(userMementos[0], memento1);
         assertEq(userMementos[1], memento2);
-        assertEq(mementoContract.getUserMementoCount(alice), 2);
         
         vm.stopPrank();
     }
 
     function test_MultipleUsers() public {
         vm.startPrank(alice);
-        mementoContract.mintMemento{value: mintPrice}(
+        mementoContract.requestMemento{value: mintPrice}(
             "Alice's Memory", 
             "Alice's content",
             "Sunrise over mountains"
@@ -286,55 +212,26 @@ contract MementoVol1Test is Test {
         vm.stopPrank();
         
         vm.startPrank(bob);
-        mementoContract.mintMemento{value: mintPrice}(
+        mementoContract.requestMemento{value: mintPrice}(
             "Bob's Memory", 
             "Bob's content",
             "City lights at night"
         );
         vm.stopPrank();
         
-        assertEq(mementoContract.getUserMementoCount(alice), 1);
-        assertEq(mementoContract.getUserMementoCount(bob), 1);
+        assertEq(mementoContract.getUserMementos(alice).length, 1);
+        assertEq(mementoContract.getUserMementos(bob).length, 1);
         assertEq(mementoContract.totalMementos(), 2);
     }
 
     function test_NonExistentMemento() public {
-        vm.expectRevert("Memento NFT does not exist");
+        vm.expectRevert("Token does not exist");
         mementoContract.getMemento(999);
-    }
-
-    function test_GetUnrevealedMementos() public {
-        vm.startPrank(alice);
-        
-        uint256 tokenId1 = mementoContract.mintMemento{value: mintPrice}(
-            "Memory 1", 
-            "Content 1",
-            "Prompt 1"
-        );
-        uint256 tokenId2 = mementoContract.mintMemento{value: mintPrice}(
-            "Memory 2", 
-            "Content 2",
-            "Prompt 2"
-        );
-        
-        vm.stopPrank();
-        
-        // Initially both should be unrevealed
-        uint256[] memory unrevealed = mementoContract.getUnrevealedMementos();
-        assertEq(unrevealed.length, 2);
-        
-        // Reveal one
-        mementoContract.revealMemento(tokenId1, "https://ipfs.io/ipfs/QmHash1");
-        
-        // Now only one should be unrevealed
-        unrevealed = mementoContract.getUnrevealedMementos();
-        assertEq(unrevealed.length, 1);
-        assertEq(unrevealed[0], tokenId2);
     }
 
     function test_TokenURI() public {
         vm.startPrank(alice);
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
+        uint256 tokenId = mementoContract.requestMemento{value: mintPrice}(
             "Test Memory", 
             "Test content",
             "Beautiful landscape"
@@ -343,24 +240,21 @@ contract MementoVol1Test is Test {
         string memory tokenURI = mementoContract.tokenURI(tokenId);
         assertGt(bytes(tokenURI).length, 0);
         
-        // Check that it contains unrevealed indicator
-        assertTrue(bytes(tokenURI).length > 0);
-        
         vm.stopPrank();
         
-        // Reveal and check URI changes
-        mementoContract.revealMemento(tokenId, "https://ipfs.io/ipfs/QmFinalHash");
+        // Update URI and check it changes
+        mementoContract.updateMementoUri(tokenId, "https://bzz.link/QmFinalHash");
         
-        string memory revealedURI = mementoContract.tokenURI(tokenId);
-        assertGt(bytes(revealedURI).length, 0);
-        // The revealed URI should be different from unrevealed
-        assertNotEq(tokenURI, revealedURI);
+        string memory updatedURI = mementoContract.tokenURI(tokenId);
+        assertGt(bytes(updatedURI).length, 0);
+        // The updated URI should be different from original
+        assertNotEq(tokenURI, updatedURI);
     }
 
     function test_WithdrawOnlyOwner() public {
-        // First, mint some NFTs to add funds to the contract
+        // First, request some NFTs to add funds to the contract
         vm.startPrank(alice);
-        mementoContract.mintMemento{value: mintPrice}(
+        mementoContract.requestMemento{value: mintPrice}(
             "Memory 1", 
             "Content 1",
             "Starry night sky"
@@ -387,26 +281,54 @@ contract MementoVol1Test is Test {
         assertEq(address(mementoContract).balance, 0);
     }
 
-    function testFuzz_MintMemento(string memory title, string memory content, string memory aiPrompt) public {
+    function test_SetGenerationPrice() public {
+        uint256 newPrice = 10 ether;
+        
+        // Only owner can set price
+        vm.startPrank(alice);
+        vm.expectRevert();
+        mementoContract.setGenerationPrice(newPrice);
+        vm.stopPrank();
+        
+        // Owner can set price
+        mementoContract.setGenerationPrice(newPrice);
+        assertEq(mementoContract.generationPrice(), newPrice);
+    }
+
+    function test_SetPlaceholderImageUri() public {
+        string memory newPlaceholder = "https://example.com/placeholder.png";
+        
+        // Only owner can set placeholder
+        vm.startPrank(alice);
+        vm.expectRevert();
+        mementoContract.setPlaceholderImageUri(newPlaceholder);
+        vm.stopPrank();
+        
+        // Owner can set placeholder
+        mementoContract.setPlaceholderImageUri(newPlaceholder);
+        assertEq(mementoContract.placeholderImageUri(), newPlaceholder);
+    }
+
+    function testFuzz_RequestMemento(string memory title, string memory content, string memory aiPrompt) public {
         vm.assume(bytes(title).length > 0);
         vm.assume(bytes(content).length > 0);
         vm.assume(bytes(aiPrompt).length > 0);
         
         vm.startPrank(alice);
-        uint256 tokenId = mementoContract.mintMemento{value: mintPrice}(
+        uint256 tokenId = mementoContract.requestMemento{value: mintPrice}(
             title, 
             content,
             aiPrompt
         );
         
-        (string memory storedTitle, string memory storedContent, string memory storedPrompt,,,, string memory imageUrl, bool isRevealed) = 
+        (string memory storedTitle, string memory storedContent, string memory storedPrompt,,,, string memory imageUri, bool isGenerated) = 
             mementoContract.getMemento(tokenId);
         
         assertEq(storedTitle, title);
         assertEq(storedContent, content);
         assertEq(storedPrompt, aiPrompt);
-        assertEq(imageUrl, mementoContract.placeholderImageUrl());
-        assertFalse(isRevealed);
+        assertEq(imageUri, mementoContract.placeholderImageUri());
+        assertFalse(isGenerated);
         assertEq(mementoContract.ownerOf(tokenId), alice);
         vm.stopPrank();
     }

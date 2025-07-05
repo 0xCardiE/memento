@@ -4,8 +4,8 @@ import './globals.css'
 import Web3Provider from '@/app/components/Web3Provider'
 
 export const metadata: Metadata = {
-  title: 'Mement Machina - Vol 1 - Mint Your Memories as NFTs',
-  description: 'Create, mint, and collect meaningful memories as NFTs on Flow blockchain with AI-generated artwork stored on Swarm',
+  title: 'Memento Machina - Geological Pattern NFT Generator',
+  description: 'Create beautiful layered rock formation patterns as NFTs on Flow blockchain with AI-generated artwork stored on Swarm',
 }
 
 export default function RootLayout({
@@ -14,8 +14,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning={true}>
+      <body suppressHydrationWarning={true}>
         <Web3Provider>
           {children}
         </Web3Provider>

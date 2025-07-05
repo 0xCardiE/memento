@@ -62,7 +62,7 @@ export default function MintNFT() {
         abi: MEMENTO_ABI,
         functionName: 'requestMemento',
         args: [displayPrompt, 'Geological pattern NFT generated with AI', fullPrompt],
-        value: parseEther('0.003'),
+        value: parseEther('6.66'),
       });
     } catch (err) {
       console.error('Error requesting memento:', err);
@@ -74,8 +74,8 @@ export default function MintNFT() {
     return (
       <div className="container">
         <div className="header">
-          <h1>🏔️ Geological Pattern Generator</h1>
-          <p className="subtitle">Connect your wallet to mint geological patterns</p>
+                  <h1>🏔️ Memento Machina</h1>
+        <p className="subtitle">Connect your wallet to mint geological patterns</p>
         </div>
       </div>
     );
@@ -95,7 +95,7 @@ export default function MintNFT() {
   return (
     <div className="container">
       <div className="header">
-        <h1>🏔️ Geological Pattern Generator</h1>
+        <h1>🏔️ Memento Machina</h1>
         <p className="subtitle">Create beautiful layered rock formation patterns</p>
       </div>
 
@@ -144,7 +144,7 @@ export default function MintNFT() {
                 {isPending ? 'Confirming...' : 'Processing...'}
               </>
             ) : (
-              'Generate Geological Pattern NFT (0.003 FLOW)'
+              'Generate Geological Pattern NFT (6.66 FLOW)'
             )}
           </button>
         </div>

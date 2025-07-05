@@ -1,6 +1,6 @@
-# Mement Machina - Vol 1 - NFT Memory Minting Platform
+# Memento Machina - Geological Pattern NFT Generator
 
-A full-stack NFT minting platform built with Flow, Hardhat 3, and Swarm that allows users to mint their memories as unique NFTs with AI-generated artwork stored on decentralized storage.
+A full-stack NFT minting platform built with Flow, Hardhat 3, and Swarm that allows users to create beautiful layered rock formation patterns as unique NFTs with AI-generated artwork stored on decentralized storage.
 
 ## 🛠️ Built With
 
@@ -32,7 +32,7 @@ This project includes:
 
 ## Features
 
-- **AI-Generated NFTs**: Users submit memory prompts, AI creates unique artwork
+- **AI-Generated NFTs**: Users submit geological pattern prompts, AI creates unique artwork
 - **Pay-First System**: Payment before AI generation ensures guaranteed processing
 - **Flow EVM Integration**: Deployed on Flow blockchain with sponsored transactions
 - **Swarm Storage**: Decentralized storage for permanent artwork hosting

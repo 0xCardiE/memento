@@ -21,7 +21,7 @@ contract MementoVol1 is ERC721, Ownable {
     
     uint256 public totalMementos;
     uint256 public nextTokenId;
-    uint256 public generationPrice = 0.003 ether; // ~$3 worth of ETH
+    uint256 public generationPrice = 6.66 ether; // 6.66 FLOW
     
     string public placeholderImageUri = "https://via.placeholder.com/512x512.png?text=AI+Generation+Pending";
 
@@ -46,7 +46,7 @@ contract MementoVol1 is ERC721, Ownable {
         _;
     }
 
-    constructor() ERC721("Mement Machina Vol 1", "MEMO") Ownable(msg.sender) {
+    constructor() ERC721("Memento Machina", "MEMO") Ownable(msg.sender) {
         nextTokenId = 0;
         totalMementos = 0;
     }

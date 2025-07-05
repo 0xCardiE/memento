@@ -14,7 +14,7 @@ function HomePage() {
           <div className="flex justify-between items-start header-responsive mb-8">
             <div className="header-content">
               <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                🏔️ Geological Pattern Generator
+                🏔️ Memento Machina
               </h1>
               <p className="text-xl text-gray-600">
                 Create beautiful layered rock formation patterns as NFTs on the blockchain
@@ -73,7 +73,7 @@ function HomePage() {
               className="flex items-center gap-2 hover:text-blue-600 transition-colors"
             >
               <img 
-                src="https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/6343a5c8ad9a3b2c8c4b7d6b_flow-logo.png" 
+                src="/flow-logo.png" 
                 alt="Flow" 
                 className="w-6 h-6"
               />
@@ -86,7 +86,7 @@ function HomePage() {
               className="flex items-center gap-2 hover:text-yellow-600 transition-colors"
             >
               <img 
-                src="https://hardhat.org/favicon.ico" 
+                src="/hardhat-logo.ico" 
                 alt="Hardhat" 
                 className="w-6 h-6"
               />
@@ -99,7 +99,7 @@ function HomePage() {
               className="flex items-center gap-2 hover:text-orange-600 transition-colors"
             >
               <img 
-                src="https://www.ethswarm.org/assets/img/swarm-logo.svg" 
+                src="/swarm-logo.svg" 
                 alt="Swarm" 
                 className="w-6 h-6"
               />
