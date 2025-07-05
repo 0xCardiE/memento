@@ -65,7 +65,7 @@ function HomePage() {
 
         <footer className="mt-16 text-center text-gray-500">
           <p className="mb-4">Built with</p>
-          <div className="flex justify-center items-center gap-8 flex-wrap">
+          <div className="flex justify-center items-center gap-6 flex-wrap">
             <a 
               href="https://flow.com" 
               target="_blank" 
@@ -73,9 +73,9 @@ function HomePage() {
               className="flex items-center gap-2 hover:text-blue-600 transition-colors"
             >
               <img 
-                src="/flow-logo.png" 
+                src="/flow.png" 
                 alt="Flow" 
-                className="w-6 h-6"
+                style={{ height: '20px' }}
               />
               <span className="font-semibold">Flow</span>
             </a>
@@ -86,9 +86,9 @@ function HomePage() {
               className="flex items-center gap-2 hover:text-yellow-600 transition-colors"
             >
               <img 
-                src="/hardhat-logo.ico" 
+                src="/hardhat.png" 
                 alt="Hardhat" 
-                className="w-6 h-6"
+                style={{ height: '20px' }}
               />
               <span className="font-semibold">Hardhat 3</span>
             </a>
@@ -99,9 +99,9 @@ function HomePage() {
               className="flex items-center gap-2 hover:text-orange-600 transition-colors"
             >
               <img 
-                src="/swarm-logo.svg" 
+                src="/swarm.jpg" 
                 alt="Swarm" 
-                className="w-6 h-6"
+                style={{ height: '20px' }}
               />
               <span className="font-semibold">Swarm</span>
             </a>
