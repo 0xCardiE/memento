@@ -23,27 +23,21 @@ const NETWORK = process.env.NETWORK || 'testnet';
 const DEFAULT_MODEL = 'dall-e-3';
 const DEFAULT_IMAGE_SIZE = '1024x1024';
 
-// Network configuration
-const chains = {
-  testnet: {
-    name: 'Flow EVM Testnet',
-    chainId: 545,
-    rpcUrl: 'https://testnet.evm.nodes.onflow.org',
-    contractAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3'
-  },
-  mainnet: {
-    name: 'Flow EVM Mainnet',
-    chainId: 747,
-    rpcUrl: 'https://mainnet.evm.nodes.onflow.org',
-    contractAddress: '0x5FbDB2315678afecb367f032d93F642f64180aa3'
-  }
+// Flow EVM chain configurations
+const flowTestnet = {
+  name: 'Flow EVM Testnet',
+  chainId: 545,
+  rpcUrl: 'https://testnet.evm.nodes.onflow.org',
 };
 
-const chain = chains[NETWORK];
-if (!chain) {
-  console.error(`❌ Invalid network: ${NETWORK}`);
-  process.exit(1);
-}
+const flowMainnet = {
+  name: 'Flow EVM Mainnet', 
+  chainId: 747,
+  rpcUrl: 'https://mainnet.evm.nodes.onflow.org',
+};
+
+// Select chain based on network
+const chain = NETWORK === 'mainnet' ? flowMainnet : flowTestnet;
 
 // Validate required environment variables
 if (!ADMIN_PRIVATE_KEY) {
@@ -56,10 +50,19 @@ if (!OPENAI_API_KEY) {
   process.exit(1);
 }
 
+// Contract configuration - same as index.js
+const contractAddress = NETWORK === 'mainnet' 
+  ? process.env.CONTRACT_ADDRESS_MAINNET 
+  : process.env.CONTRACT_ADDRESS_TESTNET;
+
+if (!contractAddress) {
+  console.error(`❌ Contract address for ${NETWORK} network is required`);
+  process.exit(1);
+}
+
 // Setup provider and contract
 const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
 const wallet = new ethers.Wallet(ADMIN_PRIVATE_KEY, provider);
-const contractAddress = chain.contractAddress;
 
 const contractABI = [
   "function getPendingMementos() external view returns (uint256[] memory)",
@@ -69,6 +72,16 @@ const contractABI = [
 ];
 
 const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+
+// Debug environment variables (without sensitive data)
+console.log(`🔧 Environment variables loaded:`);
+console.log(`   NETWORK: ${NETWORK}`);
+console.log(`   ADMIN_PRIVATE_KEY: ${ADMIN_PRIVATE_KEY ? '✅ Found' : '❌ Missing'}`);
+console.log(`   OPENAI_API_KEY: ${OPENAI_API_KEY ? '✅ Found' : '❌ Missing'}`);
+console.log(`   CONTRACT_ADDRESS_TESTNET: ${process.env.CONTRACT_ADDRESS_TESTNET ? '✅ Found' : '❌ Missing'}`);
+console.log(`   CONTRACT_ADDRESS_MAINNET: ${process.env.CONTRACT_ADDRESS_MAINNET ? '✅ Found' : '❌ Missing'}`);
+console.log(`   SWARM_GATEWAY: ${SWARM_GATEWAY}`);
+console.log(`   SWARM_BATCH_ID: ${SWARM_BATCH_ID ? '✅ Found' : '❌ Missing'}`);
 
 console.log(`🔧 Pending NFT Processor - ${chain.name}`);
 console.log(`📄 Contract: ${contractAddress}`);
