@@ -141,13 +141,13 @@ function MintNFTInner() {
           {/* Color Palette Input */}
           <div className="form-group">
             <label htmlFor="colors" className="form-label">
-              Color Palette Description
+              How do you feel today if you can describe it with color?
             </label>
             <input 
               type="text" 
               id="colors" 
               className="form-input"
-              placeholder="e.g., warm earth tones with deep reds and browns..."
+              placeholder="e.g., feeling calm like ocean blues, or energetic like sunset oranges..."
               value={colors}
               onChange={(e) => setColors(e.target.value)}
               required
@@ -155,20 +155,20 @@ function MintNFTInner() {
             
             {/* Color Examples */}
             <div className="example-colors">
-              <span className="color-example" onClick={() => setColorExample('warm earth tones with deep reds and browns')}>
-                Earth & Red
+              <span className="color-example" onClick={() => setColorExample('peaceful like soft blues and gentle grays')}>
+                Peaceful
               </span>
-              <span className="color-example" onClick={() => setColorExample('cool blues and grays like ocean sediments')}>
-                Ocean Blues
+              <span className="color-example" onClick={() => setColorExample('energetic like bright oranges and vibrant yellows')}>
+                Energetic
               </span>
-              <span className="color-example" onClick={() => setColorExample('desert colors with oranges, tans, and sandy yellows')}>
-                Desert Tones
+              <span className="color-example" onClick={() => setColorExample('nostalgic like warm browns and faded golds')}>
+                Nostalgic
               </span>
-              <span className="color-example" onClick={() => setColorExample('forest colors with deep greens and browns')}>
-                Forest Greens
+              <span className="color-example" onClick={() => setColorExample('dreamy like soft purples and misty pinks')}>
+                Dreamy
               </span>
-              <span className="color-example" onClick={() => setColorExample('sunset colors with purples, oranges, and pinks')}>
-                Sunset
+              <span className="color-example" onClick={() => setColorExample('grounded like deep greens and earthy browns')}>
+                Grounded
               </span>
             </div>
           </div>
@@ -176,13 +176,13 @@ function MintNFTInner() {
           {/* Variations Input */}
           <div className="form-group">
             <label htmlFor="variations" className="form-label">
-              Special Effects (Optional)
+              What are you thinking of lately or just some random thoughts? (Optional)
             </label>
             <input 
               type="text" 
               id="variations" 
               className="form-input"
-              placeholder="Add special effects, textures, or modifications..."
+              placeholder="Share your recent thoughts, dreams, or anything on your mind..."
               value={variations}
               onChange={(e) => setVariations(e.target.value)}
             />
