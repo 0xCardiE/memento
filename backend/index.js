@@ -208,51 +208,11 @@ async function storeImageOnSwarm(imageBuffer, tokenId) {
   }
 }
 
-// Update NFT metadata with image URL
-async function updateNFTMetadata(tokenId, title, content, imageUrl) {
+// Update NFT with image URI (simplified - no JSON metadata generation/storage)
+async function updateNFTImageUri(tokenId, imageUrl) {
   try {
-    console.log(`🔄 Updating NFT metadata for Token ID: ${tokenId}`);
-    
-    const metadata = {
-      name: title,
-      description: content,
-      image: imageUrl,
-      external_url: imageUrl,
-      attributes: [
-        {
-          trait_type: "Type",
-          value: "AI Generated Geological Pattern"
-        },
-        {
-          trait_type: "Generation Date",
-          value: new Date().toISOString()
-        }
-      ]
-    };
-
-    // Convert metadata to JSON string
-    const metadataJson = JSON.stringify(metadata, null, 2);
-    
-    // Store metadata on SWARM
-    const metadataResponse = await axios.post(
-      `${SWARM_GATEWAY}/bzz`,
-      metadataJson,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Swarm-Postage-Batch-Id': SWARM_BATCH_ID,
-        },
-        timeout: 30000
-      }
-    );
-
-    const metadataHash = metadataResponse.data.reference;
-    const metadataUrl = `https://bzz.link/bzz/${metadataHash}`;
-    
-    console.log(`✅ Metadata stored on SWARM: ${metadataUrl}`);
-    
-    // Update NFT URI in contract with IMAGE URL (contract constructs JSON on-demand)
-    console.log(`🔄 Updating smart contract with image URL: ${imageUrl}`);
+    console.log(`🔄 Updating NFT image URI for Token ID: ${tokenId}`);
+    console.log(`🖼️  Image URL: ${imageUrl}`);
     
     // Get current nonce to avoid conflicts with retry logic
     let retryCount = 0;
@@ -288,10 +248,10 @@ async function updateNFTMetadata(tokenId, title, content, imageUrl) {
       }
     }
     
-    return metadataUrl;
+    return imageUrl;
   } catch (error) {
-    console.error(`❌ Failed to update NFT metadata:`, error.message);
-    throw new Error(`NFT metadata update failed: ${error.message}`);
+    console.error(`❌ Failed to update NFT image URI:`, error.message);
+    throw new Error(`NFT image URI update failed: ${error.message}`);
   }
 }
 
@@ -327,15 +287,14 @@ async function processMementoRequest(tokenId, title, content, aiPrompt) {
     // Store on SWARM
     const bzzUrl = await storeImageOnSwarm(imageBuffer, tokenId);
     
-    // Update NFT metadata
-    const metadataUrl = await updateNFTMetadata(tokenId, title, content, bzzUrl);
+    // Update NFT with image URI
+    const imageUri = await updateNFTImageUri(tokenId, bzzUrl);
     
     console.log(`✅ Memento processing completed successfully!`);
     console.log(`🖼️  Image URL (stored in contract): ${bzzUrl}`);
-    console.log(`📄 Metadata URL (SWARM backup): ${metadataUrl}`);
-    console.log(`🎯 Smart contract constructs JSON on-demand using stored image URL`);
+    console.log(`🎯 Smart contract stores all NFT data including image URI`);
     
-    return { imageUrl: bzzUrl, metadataUrl };
+    return { imageUrl: bzzUrl };
   } catch (error) {
     console.error(`❌ Failed to process memento request:`, error.message);
     throw error;
