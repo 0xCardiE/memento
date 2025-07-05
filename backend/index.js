@@ -295,6 +295,9 @@ async function processMementoRequest(tokenId, title, content, aiPrompt) {
   }
 }
 
+// Track processed token IDs to prevent duplicates
+const processedTokenIds = new Set();
+
 // Event listener for MementoRequested events with Flow EVM compatibility
 async function startEventListener() {
   try {
@@ -309,7 +312,7 @@ async function startEventListener() {
     console.log(`🔍 Starting from block: ${lastProcessedBlock}`);
     console.log(`🔍 Event filter:`, eventFilter);
     
-    // Set up event listener with extensive debugging
+    // Set up event listener with extensive debugging and duplicate prevention
     contract.on('MementoRequested', async (...args) => {
       try {
         console.log(`\n📡 Raw event args received:`, args);
@@ -319,13 +322,25 @@ async function startEventListener() {
         const event = args[args.length - 1];
         const [tokenId, creator, title, content, aiPrompt, timestamp] = args.slice(0, -1);
         
+        const tokenIdStr = tokenId.toString();
+        
         console.log(`\n🔔 New MementoRequested event detected!`);
-        console.log(`🎯 Token ID: ${tokenId.toString()}`);
+        console.log(`🎯 Token ID: ${tokenIdStr}`);
         console.log(`👤 Creator: ${creator}`);
         console.log(`⏰ Timestamp: ${timestamp.toString()}`);
         console.log(`🔗 Transaction: ${event.transactionHash}`);
         
-        await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
+        // Check if already processed to prevent duplicates
+        if (processedTokenIds.has(tokenIdStr)) {
+          console.log(`⚠️ Token ID ${tokenIdStr} already processed, skipping duplicate`);
+          return;
+        }
+        
+        // Mark as being processed
+        processedTokenIds.add(tokenIdStr);
+        console.log(`✅ Processing Token ID ${tokenIdStr} (real-time event)`);
+        
+        await processMementoRequest(tokenIdStr, title, content, aiPrompt);
       } catch (error) {
         console.error(`❌ Failed to process memento request:`, error.message);
         console.error(`❌ Error details:`, error);
@@ -397,12 +412,24 @@ async function startEventListener() {
               console.log(`🔄 Event details:`, event);
               const { tokenId, creator, title, content, aiPrompt, timestamp } = event.args;
               
-              console.log(`🎯 Processing Token ID: ${tokenId.toString()}`);
+              const tokenIdStr = tokenId.toString();
+              
+              console.log(`🎯 Processing Token ID: ${tokenIdStr}`);
               console.log(`👤 Creator: ${creator}`);
               console.log(`⏰ Timestamp: ${timestamp.toString()}`);
               
+              // Check if already processed to prevent duplicates
+              if (processedTokenIds.has(tokenIdStr)) {
+                console.log(`⚠️ Token ID ${tokenIdStr} already processed, skipping duplicate (polling)`);
+                continue;
+              }
+              
+              // Mark as being processed
+              processedTokenIds.add(tokenIdStr);
+              console.log(`✅ Processing Token ID ${tokenIdStr} (polling backup)`);
+              
               try {
-                await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
+                await processMementoRequest(tokenIdStr, title, content, aiPrompt);
               } catch (error) {
                 console.error(`❌ Failed to process memento request:`, error.message);
               }
