@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import '@rainbow-me/rainbowkit/styles.css'
 import './globals.css'
-import Web3Provider from '@/components/Web3Provider'
+import Web3Provider from '@/app/components/Web3Provider'
 
 export const metadata: Metadata = {
   title: 'Mement Machina - Vol 1 - Mint Your Memories as NFTs',
