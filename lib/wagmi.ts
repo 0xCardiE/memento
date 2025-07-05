@@ -44,14 +44,25 @@ export const flowMainnet = defineChain({
   },
 })
 
-export const config = getDefaultConfig({
-  appName: process.env.NEXT_PUBLIC_APP_NAME || 'Mement Machina - Vol 1',
-  projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'your-project-id',
-  chains: [flowTestnet, flowMainnet],
-  ssr: true,
-})
+// Lazy-load the config to prevent SSR issues
+let _config: any = null
 
-// Contract ABI for Mement Machina Vol 1 (pay-and-prompt system)
+export const getConfig = () => {
+  if (!_config && typeof window !== 'undefined') {
+    _config = getDefaultConfig({
+      appName: process.env.NEXT_PUBLIC_APP_NAME || 'Memento Machina - Vol 1',
+      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'your-project-id',
+      chains: [flowTestnet, flowMainnet],
+      ssr: true,
+    })
+  }
+  return _config
+}
+
+// Export config for backward compatibility
+export const config = typeof window !== 'undefined' ? getConfig() : null
+
+// Contract ABI for Memento Machina Vol 1 (pay-and-prompt system)
 export const MEMENTO_ABI = [
   {
     "inputs": [],
@@ -200,32 +211,19 @@ export const MEMENTO_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "getPendingMementos",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
       }
     ],
-    "name": "getUserMementos",
+    "name": "getMementoImageUri",
     "outputs": [
       {
-        "internalType": "uint256[]",
+        "internalType": "string",
         "name": "",
-        "type": "uint256[]"
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -235,51 +233,16 @@ export const MEMENTO_ABI = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "_tokenId",
         "type": "uint256"
       }
     ],
-    "name": "mementos",
+    "name": "getMementoPrompt",
     "outputs": [
       {
         "internalType": "string",
-        "name": "title",
+        "name": "",
         "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "content",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "aiPrompt",
-        "type": "string"
-      },
-      {
-        "internalType": "address",
-        "name": "creator",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "isActive",
-        "type": "bool"
-      },
-      {
-        "internalType": "string",
-        "name": "imageUri",
-        "type": "string"
-      },
-      {
-        "internalType": "bool",
-        "name": "isGenerated",
-        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -287,12 +250,31 @@ export const MEMENTO_ABI = [
   },
   {
     "inputs": [],
-    "name": "name",
+    "name": "getTotalMementos",
     "outputs": [
       {
-        "internalType": "string",
+        "internalType": "uint256",
         "name": "",
-        "type": "string"
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "isMementoGenerated",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -344,19 +326,6 @@ export const MEMENTO_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "placeholderImageUri",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "string",
@@ -389,71 +358,13 @@ export const MEMENTO_ABI = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_newPrice",
+        "name": "_generationPrice",
         "type": "uint256"
       }
     ],
     "name": "setGenerationPrice",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "_newPlaceholderUri",
-        "type": "string"
-      }
-    ],
-    "name": "setPlaceholderImageUri",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "symbol",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_tokenId",
-        "type": "uint256"
-      }
-    ],
-    "name": "tokenURI",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "totalMementos",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -469,7 +380,7 @@ export const MEMENTO_ABI = [
         "type": "string"
       }
     ],
-    "name": "updateMementoUri",
+    "name": "setMementoImage",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -477,25 +388,52 @@ export const MEMENTO_ABI = [
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "internalType": "bytes4",
+        "name": "interfaceId",
+        "type": "bytes4"
       }
     ],
-    "name": "userMementos",
+    "name": "supportsInterface",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "bool",
         "name": "",
-        "type": "uint256"
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "tokenURI",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -505,7 +443,7 @@ export const MEMENTO_ABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   }
-] as const
+]
 
 // Contract addresses - loaded from environment variables
 export const CONTRACT_ADDRESSES = {

@@ -24,6 +24,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className="bg-gradient" suppressHydrationWarning={true}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Polyfill for SSR compatibility
+              if (typeof global !== 'undefined' && typeof global.indexedDB === 'undefined') {
+                global.indexedDB = null;
+              }
+              if (typeof window !== 'undefined' && typeof window.indexedDB === 'undefined') {
+                window.indexedDB = null;
+              }
+            `,
+          }}
+        />
         <Web3Provider>
           {children}
         </Web3Provider>

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
 import { parseEther } from 'viem';
 import { MEMENTO_ABI } from '@/lib/wagmi';
+import dynamic from 'next/dynamic';
 
 // Contract addresses for different networks
 const CONTRACT_ADDRESSES = {
@@ -11,11 +12,12 @@ const CONTRACT_ADDRESSES = {
   747: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_MAINNET as `0x${string}`, // Flow EVM Mainnet
 };
 
-export default function MintNFT() {
+function MintNFTInner() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const [colors, setColors] = useState('');
   const [variations, setVariations] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   const contractAddress = CONTRACT_ADDRESSES[chainId as keyof typeof CONTRACT_ADDRESSES];
 
@@ -23,6 +25,10 @@ export default function MintNFT() {
   const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
     hash,
   });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const setColorExample = (colorText: string) => {
     setColors(colorText);
@@ -69,6 +75,19 @@ export default function MintNFT() {
       alert('Error requesting memento. Please try again.');
     }
   };
+
+  if (!mounted) {
+    return (
+      <section className="max-w-4xl mx-auto">
+        <div className="mint-header">
+          <h2 className="text-3xl font-bold mb-4">Loading...</h2>
+          <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
+            Initializing minting interface
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   if (!isConnected) {
     return (
@@ -220,4 +239,19 @@ export default function MintNFT() {
       )}
     </section>
   );
-} 
+}
+
+// Export as client-only component
+export default dynamic(() => Promise.resolve(MintNFTInner), {
+  ssr: false,
+  loading: () => (
+    <section className="max-w-4xl mx-auto">
+      <div className="mint-header">
+        <h2 className="text-3xl font-bold mb-4">Loading...</h2>
+        <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
+          Initializing minting interface
+        </p>
+      </div>
+    </section>
+  ),
+}); 
