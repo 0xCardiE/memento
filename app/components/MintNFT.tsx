@@ -449,6 +449,7 @@ function MintNFTInner() {
         {/* Success Message */}
         {isConfirmed && showRevealSection && (
           <div className="card mt-8" style={{ 
+            marginTop: '3rem',
             border: '1px solid #4ade80', 
             background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)'
           }}>
@@ -477,16 +478,16 @@ function MintNFTInner() {
                   How Your NFT is Created
                 </h4>
                 
-                <div className="space-y-2 text-sm text-left">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-center gap-2">
                     <span className="text-yellow-400">●</span>
                     <span>AI processes your prompt and generates unique artwork</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <span className="text-yellow-400">●</span>
                     <span>Image is stored permanently on SWARM decentralized network</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-center gap-2">
                     <span className="text-yellow-400">●</span>
                     <span>NFT metadata is updated on the blockchain</span>
                   </div>
