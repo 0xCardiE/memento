@@ -33,12 +33,13 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "contracts/**/*",
+    "dist/types/**/*.ts",
     "hardhat.config.ts",
     "ignition/**/*",
     "next-env.d.ts",
     "scripts/**/*",
     "test/**/*",
-    "dist/types/**/*.ts"
+    "out/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
