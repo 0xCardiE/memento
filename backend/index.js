@@ -198,7 +198,7 @@ async function storeImageOnSwarm(imageBuffer, tokenId) {
     );
 
     const swarmHash = response.data.reference;
-    const bzzUrl = `${SWARM_GATEWAY}/bzz/${swarmHash}`;
+    const bzzUrl = `https://bzz.link/bzz//bzz/${swarmHash}`;
     
     console.log(`✅ Image stored on SWARM: ${bzzUrl}`);
     return bzzUrl;
@@ -247,7 +247,7 @@ async function updateNFTMetadata(tokenId, title, content, imageUrl) {
     );
 
     const metadataHash = metadataResponse.data.reference;
-    const metadataUrl = `${SWARM_GATEWAY}/bzz/${metadataHash}`;
+    const metadataUrl = `https://bzz.link/bzz/${metadataHash}`;
     
     console.log(`✅ Metadata stored on SWARM: ${metadataUrl}`);
     
