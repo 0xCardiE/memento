@@ -29,6 +29,54 @@ function HomePage() {
         <main>
           {isConnected ? (
             <div className="space-y-8">
+              {/* Latest Mints Section */}
+              <div className="max-w-4xl mx-auto">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Latest Mints</h2>
+                <div className="grid md:grid-cols-3 gap-6">
+                  {/* Placeholder NFT 1 */}
+                  <div className="bg-white rounded-lg shadow-md p-4">
+                    <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                      <div className="text-gray-400 text-center">
+                        <div className="text-4xl mb-2">🏔️</div>
+                        <div className="text-sm">AI Generation Pending</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Placeholder NFT 2 */}
+                  <div className="bg-white rounded-lg shadow-md p-4">
+                    <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                      <div className="text-gray-400 text-center">
+                        <div className="text-4xl mb-2">🏔️</div>
+                        <div className="text-sm">AI Generation Pending</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Placeholder NFT 3 */}
+                  <div className="bg-white rounded-lg shadow-md p-4">
+                    <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                      <div className="text-gray-400 text-center">
+                        <div className="text-4xl mb-2">🏔️</div>
+                        <div className="text-sm">AI Generation Pending</div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <MintNFT />
               
               <div className="max-w-2xl mx-auto text-center">
