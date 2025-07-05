@@ -1,14 +1,11 @@
 #!/usr/bin/env node
 
-import { readFileSync, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+const { readFileSync, existsSync } = require('fs');
+const { join } = require('path');
+const { exec } = require('child_process');
+const { promisify } = require('util');
 
 const execAsync = promisify(exec);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 async function main() {
   // Get contract address from command line or use the deployed one

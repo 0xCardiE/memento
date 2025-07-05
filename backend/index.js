@@ -1,17 +1,12 @@
-import { ethers } from 'ethers';
-import axios from 'axios';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Get the directory name for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const { ethers } = require('ethers');
+const axios = require('axios');
+const path = require('path');
+require('dotenv').config();
 
 // Load environment variables from root directory
 const envPath = path.join(__dirname, '..', '.env');
 console.log(`🔍 Loading .env from: ${envPath}`);
-dotenv.config({ path: envPath });
+require('dotenv').config({ path: envPath });
 
 // Environment variables
 const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
@@ -109,23 +104,28 @@ console.log(`📄 Contract: ${contractAddress}`);
 console.log(`🔑 Admin: ${wallet.address}`);
 
 // Network health check
-try {
-  const networkCheck = await provider.getNetwork();
-  console.log(`✅ Network connected: Chain ID ${networkCheck.chainId}, Name: ${networkCheck.name}`);
-  
-  const latestBlock = await provider.getBlockNumber();
-  const blockDetails = await provider.getBlock(latestBlock);
-  console.log(`📊 Latest block: ${latestBlock}, timestamp: ${blockDetails.timestamp}`);
-  
-  const blockAge = Math.floor((Date.now() - blockDetails.timestamp * 1000) / 1000);
-  console.log(`⏰ Block age: ${blockAge} seconds`);
-  
-  if (blockAge > 120) { // More than 2 minutes old
-    console.log(`⚠️ Warning: Latest block is ${blockAge} seconds old - network might be slow`);
+async function checkNetwork() {
+  try {
+    const networkCheck = await provider.getNetwork();
+    console.log(`✅ Network connected: Chain ID ${networkCheck.chainId}, Name: ${networkCheck.name}`);
+    
+    const latestBlock = await provider.getBlockNumber();
+    const blockDetails = await provider.getBlock(latestBlock);
+    console.log(`📊 Latest block: ${latestBlock}, timestamp: ${blockDetails.timestamp}`);
+    
+    const blockAge = Math.floor((Date.now() - blockDetails.timestamp * 1000) / 1000);
+    console.log(`⏰ Block age: ${blockAge} seconds`);
+    
+    if (blockAge > 120) { // More than 2 minutes old
+      console.log(`⚠️ Warning: Latest block is ${blockAge} seconds old - network might be slow`);
+    }
+  } catch (networkError) {
+    console.error(`❌ Network health check failed:`, networkError.message);
   }
-} catch (networkError) {
-  console.error(`❌ Network health check failed:`, networkError.message);
 }
+
+// Call network check
+checkNetwork();
 
 // Generate image using OpenAI DALL-E
 async function generateImage(prompt) {

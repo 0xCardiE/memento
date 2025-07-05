@@ -1,14 +1,7 @@
-import { readFileSync } from 'fs';
-import { ethers } from 'ethers';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import dotenv from 'dotenv';
-
-// Load environment variables
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const { readFileSync } = require('fs');
+const { ethers } = require('ethers');
+const { join } = require('path');
+require('dotenv').config();
 
 async function main() {
   console.log("🚀 Deploying Memento Machina - Vol 1 Contract to Flow EVM");
