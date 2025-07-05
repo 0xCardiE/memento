@@ -61,8 +61,20 @@ const flowMainnet = {
 // Select chain based on network
 const chain = NETWORK === 'mainnet' ? flowMainnet : flowTestnet;
 
-// Initialize provider and wallet
-const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
+// Initialize provider and wallet with Flow EVM optimizations
+const provider = new ethers.JsonRpcProvider(chain.rpcUrl, {
+  name: chain.name,
+  chainId: chain.chainId,
+}, {
+  // Optimized for Flow EVM's ~6 second block time
+  pollingInterval: 3000, // 3 seconds (faster than block time for responsiveness)
+  // Reduce batch size for better compatibility
+  batchStallTime: 10,
+  batchMaxSize: 1,
+  // Add caching for better performance
+  cacheTimeout: 300000, // 5 minutes
+});
+
 const wallet = new ethers.Wallet(ADMIN_PRIVATE_KEY, provider);
 
 // Contract configuration
@@ -256,25 +268,74 @@ async function processMementoRequest(tokenId, title, content, aiPrompt) {
   }
 }
 
-// Event listener for MementoRequested events
+// Event listener for MementoRequested events with Flow EVM compatibility
 async function startEventListener() {
   try {
     console.log(`👂 Starting event listener for MementoRequested events...`);
     
-    contract.on('MementoRequested', async (tokenId, user, title, content, aiPrompt, event) => {
-      console.log(`\n🔔 New MementoRequested event detected!`);
-      console.log(`🎯 Token ID: ${tokenId.toString()}`);
-      console.log(`👤 User: ${user}`);
-      console.log(`🔗 Transaction: ${event.transactionHash}`);
-      
+    // More robust event listener with error handling for Flow EVM compatibility
+    const eventFilter = contract.filters.MementoRequested();
+    let lastProcessedBlock = await provider.getBlockNumber();
+    
+    console.log(`🔍 Starting from block: ${lastProcessedBlock}`);
+    
+    // Set up event listener with error handling
+    contract.on('MementoRequested', async (...args) => {
       try {
+        // Extract event data - last argument is the event object
+        const event = args[args.length - 1];
+        const [tokenId, user, title, content, aiPrompt] = args.slice(0, -1);
+        
+        console.log(`\n🔔 New MementoRequested event detected!`);
+        console.log(`🎯 Token ID: ${tokenId.toString()}`);
+        console.log(`👤 User: ${user}`);
+        console.log(`🔗 Transaction: ${event.transactionHash}`);
+        
         await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
       } catch (error) {
         console.error(`❌ Failed to process memento request:`, error.message);
       }
     });
     
-    console.log(`✅ Event listener started successfully`);
+    // Set up error handler for the event listener
+    contract.on('error', (error) => {
+      console.error(`⚠️ Contract event error (continuing...):`, error.message);
+    });
+    
+    // Add a fallback polling mechanism for robustness
+    const pollForEvents = async () => {
+      try {
+        const currentBlock = await provider.getBlockNumber();
+        
+        if (currentBlock > lastProcessedBlock) {
+          const events = await contract.queryFilter(
+            eventFilter,
+            lastProcessedBlock + 1,
+            currentBlock
+          );
+          
+          for (const event of events) {
+            console.log(`🔄 Processing event from block ${event.blockNumber}`);
+            const { tokenId, user, title, content, aiPrompt } = event.args;
+            
+            try {
+              await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
+            } catch (error) {
+              console.error(`❌ Failed to process memento request:`, error.message);
+            }
+          }
+          
+          lastProcessedBlock = currentBlock;
+        }
+      } catch (error) {
+        console.error(`⚠️ Polling error (continuing...):`, error.message);
+      }
+    };
+    
+    // Poll every 10 seconds as backup (faster than Flow EVM block time)
+    setInterval(pollForEvents, 10000);
+    
+    console.log(`✅ Event listener started successfully (with polling backup)`);
   } catch (error) {
     console.error(`❌ Failed to start event listener:`, error.message);
     throw error;
