@@ -25,7 +25,7 @@ function HomePage() {
         {/* Hero Section */}
         <section className="hero mb-16">
           <div className="hero-title mb-4">
-            Super Rare
+            Super Rare - Vol 1.
           </div>
           <div className="hero-subtitle mb-8">
             Generate unique geological pattern NFTs with AI-powered artwork on Flow blockchain
@@ -56,34 +56,12 @@ function HomePage() {
 
         <main>
           {isConnected ? (
-            <div className="space-y-12">
+            <div className="space-y-24">
               {/* Latest Mints Section */}
               <LatestMints />
 
               {/* Mint Section */}
               <MintNFT />
-              
-              {/* How it works Section */}
-              <section className="max-w-4xl mx-auto">
-                <h2 className="text-2xl font-bold mb-8 text-center">How It Works</h2>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="card text-center">
-                    <div className="text-4xl mb-4" style={{ color: 'var(--accent-primary)' }}>🎨</div>
-                    <h3 className="font-bold mb-3">Design</h3>
-                    <p>Choose colors and effects for your geological pattern using our AI prompt system</p>
-                  </div>
-                  <div className="card text-center">
-                    <div className="text-4xl mb-4" style={{ color: 'var(--accent-primary)' }}>⚡</div>
-                    <h3 className="font-bold mb-3">Mint</h3>
-                    <p>Pay 6.66 FLOW to mint your NFT and trigger AI generation</p>
-                  </div>
-                  <div className="card text-center">
-                    <div className="text-4xl mb-4" style={{ color: 'var(--accent-primary)' }}>🏔️</div>
-                    <h3 className="font-bold mb-3">Own</h3>
-                    <p>Your unique geological pattern NFT is generated and stored permanently</p>
-                  </div>
-                </div>
-              </section>
             </div>
           ) : (
             <div className="text-center py-16">
