@@ -1,6 +1,9 @@
-const { ethers } = require('ethers');
-const axios = require('axios');
-require('dotenv').config();
+import { ethers } from 'ethers';
+import axios from 'axios';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Environment variables
 const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
