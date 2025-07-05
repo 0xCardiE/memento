@@ -77,6 +77,22 @@ function HomePage() {
 
         {/* Footer */}
         <footer className="footer">
+          {/* OpenSea Collection Link */}
+          <div className="text-center mb-6">
+            <a 
+              href="https://opensea.io/collection/shared-sediments"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 hover:opacity-75 transition-opacity"
+            >
+              <img 
+                src="/OpenSea.png" 
+                alt="OpenSea" 
+                height="50"
+              />
+            </a>
+          </div>
+          
           <p className="mb-4" style={{ color: 'var(--text-muted)' }}>Built with cutting-edge technology</p>
           <div className="footer-links">
             <a 
