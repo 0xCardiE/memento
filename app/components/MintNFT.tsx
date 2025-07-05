@@ -12,12 +12,40 @@ const CONTRACT_ADDRESSES = {
   747: process.env.NEXT_PUBLIC_MEMENTO_CONTRACT_FLOW_MAINNET as `0x${string}`, // Flow EVM Mainnet
 };
 
+// Array of 21 color feeling combinations
+const COLOR_COMBINATIONS = [
+  'Peaceful sage greens and soft lavenders',
+  'Energetic bright yellows and fiery reds',
+  'Nostalgic warm browns and golden hues',
+  'Dreamy purples and midnight blues',
+  'Grounded earth tones and forest greens',
+  'Vibrant coral pinks and sunset oranges',
+  'Calm ocean blues and seafoam greens',
+  'Mysterious deep purples and charcoal grays',
+  'Cheerful sunshine yellows and lime greens',
+  'Romantic rose golds and blush pinks',
+  'Sophisticated navy blues and silver grays',
+  'Tropical turquoise and palm greens',
+  'Rustic terracotta and burnt oranges',
+  'Ethereal pearl whites and misty grays',
+  'Bold crimson reds and midnight blacks',
+  'Serene pastel blues and cotton whites',
+  'Earthy moss greens and bark browns',
+  'Electric neon pinks and cyber blues',
+  'Autumn amber and copper bronzes',
+  'Icy glacier blues and frost whites',
+  'Warm honey golds and cinnamon browns'
+];
+
 function MintNFTInner() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const [colors, setColors] = useState('');
   const [variations, setVariations] = useState('');
   const [mounted, setMounted] = useState(false);
+
+  // State for random color examples (3 out of 21)
+  const [randomColorExamples, setRandomColorExamples] = useState<string[]>([]);
 
   const contractAddress = CONTRACT_ADDRESSES[chainId as keyof typeof CONTRACT_ADDRESSES];
 
@@ -201,6 +229,15 @@ function MintNFTInner() {
       }
     };
   }, [generationTimeout]);
+
+  // Initialize random color examples on component mount
+  useEffect(() => {
+    const getRandomExamples = () => {
+      const shuffled = [...COLOR_COMBINATIONS].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, 3);
+    };
+    setRandomColorExamples(getRandomExamples());
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -460,13 +497,7 @@ function MintNFTInner() {
                 Popular feelings:
               </div>
               <div className="flex flex-wrap gap-2">
-                {[
-                  'Peaceful sage greens and soft lavenders',
-                  'Energetic bright yellows and fiery reds',
-                  'Nostalgic warm browns and golden hues',
-                  'Dreamy purples and midnight blues',
-                  'Grounded earth tones and forest greens'
-                ].map((example) => (
+                {randomColorExamples.map((example) => (
                   <button
                     key={example}
                     type="button"
