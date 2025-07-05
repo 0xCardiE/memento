@@ -1,372 +1,326 @@
-import { createWalletClient, createPublicClient, http, defineChain } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { readFileSync, writeFileSync, createWriteStream } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
-import fetch from "node-fetch";
-import FormData from "form-data";
-import dotenv from "dotenv";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load environment variables from parent directory
-dotenv.config({ path: join(__dirname, '..', '.env') });
-
-// Define Flow EVM chains
-const flowTestnet = defineChain({
-  id: 545,
-  name: 'Flow EVM Testnet',
-  nativeCurrency: { decimals: 18, name: 'Flow', symbol: 'FLOW' },
-  rpcUrls: { default: { http: ['https://testnet.evm.nodes.onflow.org'] } },
-  blockExplorers: { default: { name: 'Flow EVM Testnet Explorer', url: 'https://evm-testnet.flowscan.io' } },
-});
-
-const flowMainnet = defineChain({
-  id: 747,
-  name: 'Flow EVM Mainnet',
-  nativeCurrency: { decimals: 18, name: 'Flow', symbol: 'FLOW' },
-  rpcUrls: { default: { http: ['https://mainnet.evm.nodes.onflow.org'] } },
-  blockExplorers: { default: { name: 'Flow EVM Mainnet Explorer', url: 'https://evm.flowscan.io' } },
-});
-
-// Contract ABI for the required functions
-const MEMENTO_ABI = [
-  {
-    type: "event",
-    name: "MementoRequested",
-    inputs: [
-      { name: "tokenId", type: "uint256", indexed: true },
-      { name: "creator", type: "address", indexed: true },
-      { name: "title", type: "string", indexed: false },
-      { name: "content", type: "string", indexed: false },
-      { name: "aiPrompt", type: "string", indexed: false },
-      { name: "timestamp", type: "uint256", indexed: false }
-    ]
-  },
-  {
-    type: "function",
-    name: "updateMementoUri",
-    inputs: [
-      { name: "_tokenId", type: "uint256" },
-      { name: "_imageUri", type: "string" }
-    ],
-    outputs: [],
-    stateMutability: "nonpayable"
-  },
-  {
-    type: "function",
-    name: "getPendingMementos",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256[]" }],
-    stateMutability: "view"
-  }
-];
+const { ethers } = require('ethers');
+const axios = require('axios');
+require('dotenv').config();
 
 // Environment variables
 const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
-const CONTRACT_ADDRESS = process.env.CONTRACT_ADDRESS || "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const RPC_URL = process.env.RPC_URL || "https://testnet.evm.nodes.onflow.org";
-const SWARM_GATEWAY = process.env.SWARM_GATEWAY || "http://localhost:5555";
-const NETWORK = process.env.NETWORK || "testnet"; // "testnet" or "mainnet"
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const SWARM_GATEWAY = process.env.SWARM_GATEWAY || 'https://gateway.ethswarm.org';
+const SWARM_BATCH_ID = process.env.SWARM_BATCH_ID || 'c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278';
+const NETWORK = process.env.NETWORK || 'testnet';
 
-// Validate required environment variables
+// Default image generation settings
+const DEFAULT_IMAGE_SIZE = '1024x1024';
+const DEFAULT_MODEL = 'dall-e-3';
+
+// Validation
 if (!ADMIN_PRIVATE_KEY) {
-  console.error("❌ ADMIN_PRIVATE_KEY environment variable is required");
+  console.error('❌ ADMIN_PRIVATE_KEY is required');
   process.exit(1);
 }
 
-// SWARM batch ID
-const BATCH_ID = "c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278";
+if (!OPENAI_API_KEY) {
+  console.error('❌ OPENAI_API_KEY is required');
+  process.exit(1);
+}
 
-// Dynamic chain selection
-const chain = NETWORK === "mainnet" ? flowMainnet : flowTestnet;
+// Flow EVM chain configurations
+const flowTestnet = {
+  name: 'Flow EVM Testnet',
+  chainId: 545,
+  rpcUrl: 'https://testnet.evm.nodes.onflow.org',
+};
 
-console.log("🚀 Starting Mement Machina Backend Service");
-console.log("==========================================");
+const flowMainnet = {
+  name: 'Flow EVM Mainnet', 
+  chainId: 747,
+  rpcUrl: 'https://mainnet.evm.nodes.onflow.org',
+};
+
+// Select chain based on network
+const chain = NETWORK === 'mainnet' ? flowMainnet : flowTestnet;
+
+// Initialize provider and wallet
+const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
+const wallet = new ethers.Wallet(ADMIN_PRIVATE_KEY, provider);
+
+// Contract configuration
+const contractAddress = NETWORK === 'mainnet' 
+  ? process.env.CONTRACT_ADDRESS_MAINNET 
+  : process.env.CONTRACT_ADDRESS_TESTNET;
+
+if (!contractAddress) {
+  console.error(`❌ Contract address for ${NETWORK} network is required`);
+  process.exit(1);
+}
+
+const contractABI = [
+  "event MementoRequested(uint256 indexed tokenId, address indexed user, string title, string content, string aiPrompt)",
+  "event MementoGenerated(uint256 indexed tokenId, string imageUrl)",
+  "function updateMementoUri(uint256 tokenId, string memory uri) external",
+  "function getPendingMementos() external view returns (uint256[] memory)",
+  "function owner() external view returns (address)"
+];
+
+const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+
+console.log(`🚀 Backend service starting...`);
 console.log(`📡 Network: ${chain.name}`);
-console.log(`⛓️  Chain ID: ${chain.id}`);
-console.log(`📝 Contract: ${CONTRACT_ADDRESS}`);
-console.log(`🌐 SWARM Gateway: ${SWARM_GATEWAY}`);
+console.log(`📄 Contract: ${contractAddress}`);
+console.log(`🔑 Admin: ${wallet.address}`);
 
-// Create clients
-const account = privateKeyToAccount(ADMIN_PRIVATE_KEY);
-const publicClient = createPublicClient({ chain, transport: http(RPC_URL) });
-const walletClient = createWalletClient({ account, chain, transport: http(RPC_URL) });
-
-console.log(`👤 Admin Address: ${account.address}`);
-
-// Call OpenAI DALL-E 3 API
-async function generateImage(prompt, size, apiKey) {
-  console.log(`🎨 Generating image with OpenAI DALL-E 3...`);
-  console.log(`📝 Prompt: ${prompt.substring(0, 100)}...`);
-  
+// Generate image using OpenAI DALL-E
+async function generateImage(prompt) {
   try {
-    const response = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "dall-e-3",
+    console.log(`🎨 Generating image with prompt: "${prompt}"`);
+    
+    const response = await axios.post(
+      'https://api.openai.com/v1/images/generations',
+      {
+        model: DEFAULT_MODEL,
         prompt: prompt,
         n: 1,
-        size: size,
-      }),
-    });
+        size: DEFAULT_IMAGE_SIZE,
+        quality: 'standard',
+        response_format: 'url'
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        timeout: 60000 // 60 seconds timeout
+      }
+    );
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.error?.message || `HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    const imageUrl = data.data?.[0]?.url;
-    
-    if (!imageUrl) {
-      throw new Error("No image URL returned from OpenAI");
-    }
-
-    console.log(`✅ Image generated successfully`);
+    const imageUrl = response.data.data[0].url;
+    console.log(`✅ Image generated successfully: ${imageUrl}`);
     return imageUrl;
-    
   } catch (error) {
-    console.error(`❌ OpenAI API error:`, error.message);
-    throw error;
+    console.error(`❌ Failed to generate image:`, error.response?.data || error.message);
+    throw new Error(`Image generation failed: ${error.response?.data?.error?.message || error.message}`);
   }
 }
 
 // Download image from URL
-async function downloadImage(url) {
-  console.log(`📥 Downloading image from OpenAI...`);
-  
+async function downloadImage(imageUrl) {
   try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
+    console.log(`📥 Downloading image from: ${imageUrl}`);
     
-    const buffer = await response.buffer();
-    console.log(`✅ Image downloaded (${buffer.length} bytes)`);
-    return buffer;
-    
+    const response = await axios.get(imageUrl, {
+      responseType: 'arraybuffer',
+      timeout: 30000 // 30 seconds timeout
+    });
+
+    console.log(`✅ Image downloaded successfully (${response.data.length} bytes)`);
+    return response.data;
   } catch (error) {
-    console.error(`❌ Download error:`, error.message);
-    throw error;
+    console.error(`❌ Failed to download image:`, error.message);
+    throw new Error(`Image download failed: ${error.message}`);
   }
 }
 
-// Upload image to SWARM
-async function uploadToSwarm(imageBuffer, filename) {
-  console.log(`🌐 Uploading to SWARM network...`);
-  
+// Store image on SWARM
+async function storeImageOnSwarm(imageBuffer, tokenId) {
   try {
-    const form = new FormData();
-    form.append('file', imageBuffer, {
-      filename: filename,
-      contentType: 'image/png'
-    });
-
-    const uploadUrl = `${SWARM_GATEWAY}/bzz?name=${filename}`;
-    console.log(`📤 Upload URL: ${uploadUrl}`);
-    console.log(`🆔 Batch ID: ${BATCH_ID}`);
-
-    const response = await fetch(uploadUrl, {
-      method: 'POST',
-      body: form,
-      headers: {
-        'Swarm-Postage-Batch-Id': BATCH_ID,
-        ...form.getHeaders()
+    console.log(`🌐 Storing image on SWARM network (Token ID: ${tokenId})`);
+    
+    const response = await axios.post(
+      `${SWARM_GATEWAY}/bzz`,
+      imageBuffer,
+      {
+        headers: {
+          'Content-Type': 'image/png',
+          'Swarm-Postage-Batch-Id': SWARM_BATCH_ID,
+        },
+        timeout: 60000 // 60 seconds timeout
       }
-    });
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
-
-    const result = await response.json();
-    const swarmHash = result.reference;
-    const bzz_link = `https://bzz.link/bzz/${swarmHash}`;
+    const swarmHash = response.data.reference;
+    const bzzUrl = `${SWARM_GATEWAY}/bzz/${swarmHash}`;
     
-    console.log(`✅ Image uploaded to SWARM`);
-    console.log(`🔗 SWARM Hash: ${swarmHash}`);
-    console.log(`🌐 BZZ Link: ${bzz_link}`);
-    
-    return bzz_link;
-    
+    console.log(`✅ Image stored on SWARM: ${bzzUrl}`);
+    return bzzUrl;
   } catch (error) {
-    console.error(`❌ SWARM upload error:`, error.message);
-    throw error;
+    console.error(`❌ Failed to store image on SWARM:`, error.response?.data || error.message);
+    throw new Error(`SWARM storage failed: ${error.response?.data || error.message}`);
   }
 }
 
-// Update NFT URI in contract
-async function updateNftUri(tokenId, imageUri) {
-  console.log(`🔄 Updating NFT ${tokenId} with image URI...`);
-  
+// Update NFT metadata with image URL
+async function updateNFTMetadata(tokenId, title, content, imageUrl) {
   try {
-    const { request } = await publicClient.simulateContract({
-      address: CONTRACT_ADDRESS,
-      abi: MEMENTO_ABI,
-      functionName: 'updateMementoUri',
-      args: [BigInt(tokenId), imageUri],
-      account: account.address,
-    });
+    console.log(`🔄 Updating NFT metadata for Token ID: ${tokenId}`);
+    
+    const metadata = {
+      name: title,
+      description: content,
+      image: imageUrl,
+      external_url: imageUrl,
+      attributes: [
+        {
+          trait_type: "Type",
+          value: "AI Generated Geological Pattern"
+        },
+        {
+          trait_type: "Generation Date",
+          value: new Date().toISOString()
+        }
+      ]
+    };
 
-    const hash = await walletClient.writeContract(request);
-    console.log(`📝 Transaction sent: ${hash}`);
+    // Convert metadata to JSON string
+    const metadataJson = JSON.stringify(metadata, null, 2);
     
-    const receipt = await publicClient.waitForTransactionReceipt({ hash });
-    console.log(`✅ NFT ${tokenId} updated successfully`);
-    console.log(`🔗 Transaction: ${chain.blockExplorers.default.url}/tx/${hash}`);
+    // Store metadata on SWARM
+    const metadataResponse = await axios.post(
+      `${SWARM_GATEWAY}/bzz`,
+      metadataJson,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Swarm-Postage-Batch-Id': SWARM_BATCH_ID,
+        },
+        timeout: 30000
+      }
+    );
+
+    const metadataHash = metadataResponse.data.reference;
+    const metadataUrl = `${SWARM_GATEWAY}/bzz/${metadataHash}`;
     
-    return receipt;
+    console.log(`✅ Metadata stored on SWARM: ${metadataUrl}`);
     
+    // Update NFT URI in contract
+    const tx = await contract.updateMementoUri(tokenId, metadataUrl);
+    await tx.wait();
+    
+    console.log(`✅ NFT metadata updated successfully. Transaction: ${tx.hash}`);
+    
+    return metadataUrl;
   } catch (error) {
-    console.error(`❌ Contract update error:`, error.message);
-    throw error;
+    console.error(`❌ Failed to update NFT metadata:`, error.message);
+    throw new Error(`NFT metadata update failed: ${error.message}`);
   }
 }
 
-// Process a memento request
-async function processMemento(tokenId, creator, title, content, aiPromptJson, timestamp) {
-  console.log(`\n🎯 Processing Memento ${tokenId}`);
-  console.log(`👤 Creator: ${creator}`);
-  console.log(`📝 Title: ${title}`);
-  
+// Process memento request
+async function processMementoRequest(tokenId, title, content, aiPrompt) {
   try {
-    // Parse the AI prompt JSON data
-    let promptData;
-    try {
-      promptData = JSON.parse(aiPromptJson);
-    } catch (parseError) {
-      console.error(`❌ Failed to parse AI prompt JSON:`, parseError.message);
-      console.log(`📄 Raw AI prompt:`, aiPromptJson);
-      return;
-    }
-
-    const { prompt, colors, variations, size, apiKey } = promptData;
+    console.log(`\n🔄 Processing memento request for Token ID: ${tokenId}`);
+    console.log(`📝 Title: ${title}`);
+    console.log(`📄 Content: ${content}`);
+    console.log(`🎨 AI Prompt: ${aiPrompt}`);
     
-    if (!prompt || !apiKey) {
-      console.error(`❌ Missing required fields in prompt data`);
-      console.log(`📄 Parsed data:`, promptData);
-      return;
-    }
-
-    console.log(`🎨 Colors: ${colors}`);
-    if (variations) {
-      console.log(`✨ Variations: ${variations}`);
-    }
-    console.log(`📐 Size: ${size}`);
-
-    // Step 1: Generate image with OpenAI DALL-E 3
-    const imageUrl = await generateImage(prompt, size, apiKey);
+    // Generate image
+    const imageUrl = await generateImage(aiPrompt);
     
-    // Step 2: Download the image
+    // Download image
     const imageBuffer = await downloadImage(imageUrl);
     
-    // Step 3: Upload to SWARM
-    const filename = `memento-${tokenId}-${Date.now()}.png`;
-    const bzzLink = await uploadToSwarm(imageBuffer, filename);
+    // Store on SWARM
+    const bzzUrl = await storeImageOnSwarm(imageBuffer, tokenId);
     
-    // Step 4: Update NFT URI in contract
-    await updateNftUri(tokenId, bzzLink);
+    // Update NFT metadata
+    const metadataUrl = await updateNFTMetadata(tokenId, title, content, bzzUrl);
     
-    console.log(`🎉 Memento ${tokenId} processed successfully!`);
-    console.log(`🖼️  Final Image: ${bzzLink}`);
+    console.log(`✅ Memento processing completed successfully!`);
+    console.log(`🖼️  Image URL: ${bzzUrl}`);
+    console.log(`📄 Metadata URL: ${metadataUrl}`);
     
+    return { imageUrl: bzzUrl, metadataUrl };
   } catch (error) {
-    console.error(`❌ Error processing memento ${tokenId}:`, error.message);
-    
-    // Could implement retry logic here
-    console.log(`⏳ Will retry on next startup...`);
+    console.error(`❌ Failed to process memento request:`, error.message);
+    throw error;
   }
 }
 
-// Process pending mementos from previous runs
-async function processPendingMementos() {
-  console.log(`\n🔍 Checking for pending mementos...`);
-  
+// Event listener for MementoRequested events
+async function startEventListener() {
   try {
-    const pendingTokens = await publicClient.readContract({
-      address: CONTRACT_ADDRESS,
-      abi: MEMENTO_ABI,
-      functionName: 'getPendingMementos',
+    console.log(`👂 Starting event listener for MementoRequested events...`);
+    
+    contract.on('MementoRequested', async (tokenId, user, title, content, aiPrompt, event) => {
+      console.log(`\n🔔 New MementoRequested event detected!`);
+      console.log(`🎯 Token ID: ${tokenId.toString()}`);
+      console.log(`👤 User: ${user}`);
+      console.log(`🔗 Transaction: ${event.transactionHash}`);
+      
+      try {
+        await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
+      } catch (error) {
+        console.error(`❌ Failed to process memento request:`, error.message);
+      }
     });
+    
+    console.log(`✅ Event listener started successfully`);
+  } catch (error) {
+    console.error(`❌ Failed to start event listener:`, error.message);
+    throw error;
+  }
+}
 
-    if (pendingTokens.length === 0) {
+// Process any pending mementos on startup
+async function processPendingMementos() {
+  try {
+    console.log(`🔍 Checking for pending mementos...`);
+    
+    const pendingTokenIds = await contract.getPendingMementos();
+    
+    if (pendingTokenIds.length === 0) {
       console.log(`✅ No pending mementos found`);
       return;
     }
-
-    console.log(`📋 Found ${pendingTokens.length} pending memento(s): ${pendingTokens.join(', ')}`);
     
-    // Note: For simplicity, we're not processing old pending mementos automatically
-    // since they don't contain the OpenAI API key. This could be enhanced to 
-    // use a fallback API key from environment variables if needed.
-    console.log(`⚠️  Pending mementos require manual processing or will be processed on new events`);
+    console.log(`📋 Found ${pendingTokenIds.length} pending mementos`);
+    
+    // Process each pending memento
+    for (const tokenId of pendingTokenIds) {
+      console.log(`🔄 Processing pending memento: ${tokenId.toString()}`);
+      
+      // You would need to implement a way to get the original request data
+      // For now, we'll just log that we found them
+      console.log(`⚠️  Found pending memento ${tokenId.toString()}, but need original request data to process`);
+    }
     
   } catch (error) {
-    console.error(`❌ Error checking pending mementos:`, error.message);
-  }
-}
-
-// Set up event listener
-async function startEventListener() {
-  console.log(`\n👂 Setting up event listener for MementoRequested events...`);
-  
-  try {
-    // Process any existing pending mementos
-    await processPendingMementos();
-    
-    console.log(`✅ Event listener started successfully`);
-    console.log(`⏳ Waiting for new memento requests...\n`);
-
-    // Watch for MementoRequested events
-    const unwatch = publicClient.watchContractEvent({
-      address: CONTRACT_ADDRESS,
-      abi: MEMENTO_ABI,
-      eventName: 'MementoRequested',
-      onLogs: (logs) => {
-        logs.forEach((log) => {
-          const { tokenId, creator, title, content, aiPrompt, timestamp } = log.args;
-          console.log(`🔔 New MementoRequested event received!`);
-          
-          // Process the memento asynchronously
-          processMemento(
-            Number(tokenId), 
-            creator, 
-            title, 
-            content, 
-            aiPrompt, 
-            Number(timestamp)
-          );
-        });
-      },
-      onError: (error) => {
-        console.error(`❌ Event listener error:`, error.message);
-        console.log(`🔄 Restarting event listener in 10 seconds...`);
-        setTimeout(() => {
-          startEventListener();
-        }, 10000);
-      }
-    });
-
-    // Handle graceful shutdown
-    process.on('SIGINT', () => {
-      console.log(`\n🛑 Shutting down gracefully...`);
-      unwatch();
-      process.exit(0);
-    });
-
-  } catch (error) {
-    console.error(`❌ Failed to start event listener:`, error.message);
-    console.log(`🔄 Retrying in 30 seconds...`);
-    setTimeout(startEventListener, 30000);
+    console.error(`❌ Failed to process pending mementos:`, error.message);
   }
 }
 
 // Start the service
-startEventListener(); 
+async function startService() {
+  try {
+    console.log(`🚀 Starting memento processing service...`);
+    
+    // Process any pending mementos
+    await processPendingMementos();
+    
+    // Start event listener
+    await startEventListener();
+    
+    console.log(`🎉 Service started successfully!`);
+    console.log(`📱 Ready to process memento requests`);
+    
+  } catch (error) {
+    console.error(`💥 Failed to start service:`, error.message);
+    process.exit(1);
+  }
+}
+
+// Handle process termination
+process.on('SIGINT', () => {
+  console.log(`\n👋 Shutting down gracefully...`);
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  console.log(`\n👋 Shutting down gracefully...`);
+  process.exit(0);
+});
+
+// Start the service
+startService().catch(error => {
+  console.error(`💥 Fatal error:`, error.message);
+  process.exit(1);
+}); 
