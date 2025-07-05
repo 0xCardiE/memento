@@ -99,8 +99,28 @@ const contract = new ethers.Contract(contractAddress, contractABI, wallet);
 
 console.log(`🚀 Backend service starting...`);
 console.log(`📡 Network: ${chain.name}`);
+console.log(`🔗 RPC URL: ${chain.rpcUrl}`);
 console.log(`📄 Contract: ${contractAddress}`);
 console.log(`🔑 Admin: ${wallet.address}`);
+
+// Network health check
+try {
+  const networkCheck = await provider.getNetwork();
+  console.log(`✅ Network connected: Chain ID ${networkCheck.chainId}, Name: ${networkCheck.name}`);
+  
+  const latestBlock = await provider.getBlockNumber();
+  const blockDetails = await provider.getBlock(latestBlock);
+  console.log(`📊 Latest block: ${latestBlock}, timestamp: ${blockDetails.timestamp}`);
+  
+  const blockAge = Math.floor((Date.now() - blockDetails.timestamp * 1000) / 1000);
+  console.log(`⏰ Block age: ${blockAge} seconds`);
+  
+  if (blockAge > 120) { // More than 2 minutes old
+    console.log(`⚠️ Warning: Latest block is ${blockAge} seconds old - network might be slow`);
+  }
+} catch (networkError) {
+  console.error(`❌ Network health check failed:`, networkError.message);
+}
 
 // Generate image using OpenAI DALL-E
 async function generateImage(prompt) {
@@ -278,10 +298,14 @@ async function startEventListener() {
     let lastProcessedBlock = await provider.getBlockNumber();
     
     console.log(`🔍 Starting from block: ${lastProcessedBlock}`);
+    console.log(`🔍 Event filter:`, eventFilter);
     
-    // Set up event listener with error handling
+    // Set up event listener with extensive debugging
     contract.on('MementoRequested', async (...args) => {
       try {
+        console.log(`\n📡 Raw event args received:`, args);
+        console.log(`📡 Number of args:`, args.length);
+        
         // Extract event data - last argument is the event object
         const event = args[args.length - 1];
         const [tokenId, user, title, content, aiPrompt] = args.slice(0, -1);
@@ -294,28 +318,76 @@ async function startEventListener() {
         await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
       } catch (error) {
         console.error(`❌ Failed to process memento request:`, error.message);
+        console.error(`❌ Error details:`, error);
       }
     });
     
     // Set up error handler for the provider (not contract)
     provider.on('error', (error) => {
       console.error(`⚠️ Provider error (continuing...):`, error.message);
+      console.error(`⚠️ Provider error details:`, error);
     });
+    
+    // Add debugging for internal provider events
+    console.log(`🔍 Provider polling interval: ${provider.pollingInterval}ms`);
     
     // Add a fallback polling mechanism for robustness
     const pollForEvents = async () => {
       try {
+        // Try fresh request to avoid caching issues
         const currentBlock = await provider.getBlockNumber();
+        const currentTime = new Date().toISOString();
+        
+        console.log(`🔄 [${currentTime}] Polling: current block ${currentBlock}, last processed ${lastProcessedBlock}`);
+        
+        // Check if we're getting the same block repeatedly
+        if (currentBlock === lastProcessedBlock) {
+          console.log(`⚠️ Block number hasn't changed - checking network connection...`);
+          
+          // Try to get block details to verify connection
+          try {
+            const blockDetails = await provider.getBlock(currentBlock);
+            console.log(`📊 Block ${currentBlock} timestamp: ${blockDetails.timestamp}, hash: ${blockDetails.hash}`);
+            
+            // Check if this is a very recent block (should be within last few minutes)
+            const blockTime = blockDetails.timestamp * 1000; // Convert to milliseconds
+            const timeDiff = Date.now() - blockTime;
+            console.log(`⏰ Block age: ${Math.floor(timeDiff / 1000)} seconds`);
+            
+            if (timeDiff > 60000) { // More than 1 minute old
+              console.log(`⚠️ Block seems old - possible network sync issue`);
+            }
+            
+            // Try a direct RPC call to bypass any caching
+            try {
+              const rpcResponse = await provider.send('eth_blockNumber', []);
+              const rpcBlockNumber = parseInt(rpcResponse, 16);
+              console.log(`🔗 Direct RPC call: block ${rpcBlockNumber} (vs provider: ${currentBlock})`);
+              
+              if (rpcBlockNumber !== currentBlock) {
+                console.log(`⚠️ Provider block number differs from direct RPC - caching issue detected`);
+              }
+            } catch (rpcError) {
+              console.error(`❌ Direct RPC call failed:`, rpcError.message);
+            }
+          } catch (blockError) {
+            console.error(`❌ Failed to get block details:`, blockError.message);
+          }
+        }
         
         if (currentBlock > lastProcessedBlock) {
+          console.log(`🔄 Querying events from block ${lastProcessedBlock + 1} to ${currentBlock}`);
           const events = await contract.queryFilter(
             eventFilter,
             lastProcessedBlock + 1,
             currentBlock
           );
           
+          console.log(`🔄 Found ${events.length} events`);
+          
           for (const event of events) {
             console.log(`🔄 Processing event from block ${event.blockNumber}`);
+            console.log(`🔄 Event details:`, event);
             const { tokenId, user, title, content, aiPrompt } = event.args;
             
             try {
@@ -329,6 +401,7 @@ async function startEventListener() {
         }
       } catch (error) {
         console.error(`⚠️ Polling error (continuing...):`, error.message);
+        console.error(`⚠️ Polling error details:`, error);
       }
     };
     
