@@ -297,9 +297,9 @@ async function startEventListener() {
       }
     });
     
-    // Set up error handler for the event listener
-    contract.on('error', (error) => {
-      console.error(`⚠️ Contract event error (continuing...):`, error.message);
+    // Set up error handler for the provider (not contract)
+    provider.on('error', (error) => {
+      console.error(`⚠️ Provider error (continuing...):`, error.message);
     });
     
     // Add a fallback polling mechanism for robustness
