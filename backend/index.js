@@ -251,7 +251,7 @@ async function updateNFTMetadata(tokenId, title, content, imageUrl) {
     
     console.log(`✅ Metadata stored on SWARM: ${metadataUrl}`);
     
-    // Update NFT URI in contract with IMAGE URL (not metadata URL)
+    // Update NFT URI in contract with IMAGE URL (contract constructs JSON on-demand)
     console.log(`🔄 Updating smart contract with image URL: ${imageUrl}`);
     const tx = await contract.updateMementoUri(tokenId, imageUrl);
     await tx.wait();
@@ -287,8 +287,8 @@ async function processMementoRequest(tokenId, title, content, aiPrompt) {
     
     console.log(`✅ Memento processing completed successfully!`);
     console.log(`🖼️  Image URL (stored in contract): ${bzzUrl}`);
-    console.log(`📄 Metadata URL (for reference): ${metadataUrl}`);
-    console.log(`🎯 Smart contract now points directly to image, not metadata`);
+    console.log(`📄 Metadata URL (SWARM backup): ${metadataUrl}`);
+    console.log(`🎯 Smart contract constructs JSON on-demand using stored image URL`);
     
     return { imageUrl: bzzUrl, metadataUrl };
   } catch (error) {

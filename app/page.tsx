@@ -3,6 +3,7 @@
 import { useAccount } from 'wagmi'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import MintNFT from '@/app/components/MintNFT'
+import LatestMints from '@/app/components/LatestMints'
 
 function HomePage() {
   const { isConnected } = useAccount()
@@ -57,52 +58,7 @@ function HomePage() {
           {isConnected ? (
             <div className="space-y-12">
               {/* Latest Mints Section */}
-              <section className="max-w-4xl mx-auto">
-                <h2 className="text-2xl font-bold mb-8 text-center">Latest Mints</h2>
-                <div className="grid md:grid-cols-3 gap-6">
-                  {/* NFT Card 1 */}
-                  <div className="nft-card">
-                    <div className="nft-placeholder">
-                      <div className="nft-placeholder-content">
-                        <div className="nft-placeholder-icon">🏔️</div>
-                        <div className="nft-placeholder-text">AI Generation Pending</div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-400 rounded animate-pulse"></div>
-                      <div className="h-3 bg-gray-400 rounded animate-pulse w-2/3"></div>
-                    </div>
-                  </div>
-                  
-                  {/* NFT Card 2 */}
-                  <div className="nft-card">
-                    <div className="nft-placeholder">
-                      <div className="nft-placeholder-content">
-                        <div className="nft-placeholder-icon">🏔️</div>
-                        <div className="nft-placeholder-text">AI Generation Pending</div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-400 rounded animate-pulse"></div>
-                      <div className="h-3 bg-gray-400 rounded animate-pulse w-2/3"></div>
-                    </div>
-                  </div>
-                  
-                  {/* NFT Card 3 */}
-                  <div className="nft-card">
-                    <div className="nft-placeholder">
-                      <div className="nft-placeholder-content">
-                        <div className="nft-placeholder-icon">🏔️</div>
-                        <div className="nft-placeholder-text">AI Generation Pending</div>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-gray-400 rounded animate-pulse"></div>
-                      <div className="h-3 bg-gray-400 rounded animate-pulse w-2/3"></div>
-                    </div>
-                  </div>
-                </div>
-              </section>
+              <LatestMints />
 
               {/* Mint Section */}
               <MintNFT />
