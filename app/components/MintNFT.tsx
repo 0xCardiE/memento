@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useReadContract } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useReadContract, useWatchContractEvent } from 'wagmi';
 import { parseEther } from 'viem';
 import { MEMENTO_ABI } from '@/lib/wagmi';
 import dynamic from 'next/dynamic';
@@ -29,6 +29,9 @@ function MintNFTInner() {
   // State for tracking recent mint
   const [recentMintId, setRecentMintId] = useState<number | null>(null);
   const [showRevealSection, setShowRevealSection] = useState(false);
+  const [isNFTGenerating, setIsNFTGenerating] = useState(false);
+  const [generatedNFTData, setGeneratedNFTData] = useState<any>(null);
+  const [generationTimeout, setGenerationTimeout] = useState<NodeJS.Timeout | null>(null);
 
   // Read contract data with refetch functions
   const { data: isMintingActive, refetch: refetchMintingActive } = useReadContract({
@@ -79,6 +82,59 @@ function MintNFTInner() {
     query: { enabled: recentMintId !== null && !!contractAddress }
   }) as { data: any[] | undefined; refetch: () => void };
 
+  // Watch for MementoGenerated events for the user's NFTs
+  useWatchContractEvent({
+    address: contractAddress as `0x${string}`,
+    abi: MEMENTO_ABI,
+    eventName: 'MementoGenerated',
+    args: {
+      creator: address, // Only listen for events where the creator is the current user
+    },
+    onLogs: (logs) => {
+      console.log('🎉 MementoGenerated event received:', logs);
+      console.log(`🔍 Looking for Token ID: ${recentMintId} for creator: ${address}`);
+      
+      logs.forEach((log: any) => {
+        const tokenId = log.args?.tokenId;
+        const creator = log.args?.creator;
+        const imageUri = log.args?.imageUri;
+        
+        console.log(`📋 Event details - Token ID: ${tokenId}, Creator: ${creator}, Image: ${imageUri}`);
+        
+        if (!tokenId || !creator || !imageUri) {
+          console.log('⚠️ Incomplete event data received');
+          return;
+        }
+        
+        const tokenIdNumber = Number(tokenId);
+        
+        // Check if this is the NFT we're waiting for
+        if (recentMintId === tokenIdNumber && creator.toLowerCase() === address?.toLowerCase()) {
+          console.log(`🎨 NFT generation completed for Token ID: ${tokenIdNumber}`);
+          setIsNFTGenerating(false);
+          setGeneratedNFTData({
+            tokenId: tokenIdNumber,
+            imageUri,
+            timestamp: Date.now()
+          });
+          
+          // Clear the timeout since generation is complete
+          if (generationTimeout) {
+            clearTimeout(generationTimeout);
+            setGenerationTimeout(null);
+          }
+          
+          // Refresh contract data to show updated status
+          refreshContractState();
+          refetchRecentMemento();
+        } else {
+          console.log(`❌ Event not for us - Expected Token ID: ${recentMintId}, Got: ${tokenIdNumber}`);
+        }
+      });
+    },
+    enabled: !!contractAddress && !!address && isNFTGenerating,
+  });
+
   // Format time remaining
   const formatTimeRemaining = (seconds: bigint | undefined) => {
     if (!seconds) return 'Unknown';
@@ -119,11 +175,32 @@ function MintNFTInner() {
       const latestMintId = Number(userMementos[userMementos.length - 1]);
       setRecentMintId(latestMintId);
       setShowRevealSection(true);
+      setIsNFTGenerating(true); // Start monitoring for NFT generation
+      setGeneratedNFTData(null); // Reset any previous generation data
+      
+      // Set a timeout to stop monitoring after 2 minutes
+      const timeout = setTimeout(() => {
+        console.log('⏰ Generation timeout reached, stopping event monitoring');
+        setIsNFTGenerating(false);
+      }, 120000); // 2 minutes
+      
+      setGenerationTimeout(timeout);
       
       // Refresh contract state to show updated counts and pricing
       refreshContractState();
+      
+      console.log(`🎯 Started monitoring NFT generation for Token ID: ${latestMintId}`);
     }
   }, [isConfirmed, userMementos]);
+
+  // Cleanup timeout on component unmount
+  useEffect(() => {
+    return () => {
+      if (generationTimeout) {
+        clearTimeout(generationTimeout);
+      }
+    };
+  }, [generationTimeout]);
 
   useEffect(() => {
     setMounted(true);
@@ -135,6 +212,18 @@ function MintNFTInner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Reset generation states for new mint
+    setIsNFTGenerating(false);
+    setGeneratedNFTData(null);
+    setRecentMintId(null);
+    setShowRevealSection(false);
+    
+    // Clear any existing timeout
+    if (generationTimeout) {
+      clearTimeout(generationTimeout);
+      setGenerationTimeout(null);
+    }
     
     if (!isConnected) {
       alert('Please connect your wallet first.');
@@ -511,8 +600,85 @@ function MintNFTInner() {
                     </div>
                   </div>
 
-                  {/* Only show "Generation in Progress" - removed "Your NFT is Ready!" section */}
-                  {!(recentMementoData && recentMementoData[7]) && (
+                  {/* Show different states based on generation status */}
+                  {generatedNFTData ? (
+                    /* NFT is ready - show the actual NFT */
+                    <div className="card p-6" style={{ background: 'rgba(74, 222, 128, 0.1)', border: '1px solid #4ade80' }}>
+                      <div className="text-center">
+                        <div className="text-4xl mb-4">🎉</div>
+                        <p className="text-xl font-bold mb-4" style={{ color: '#4ade80' }}>
+                          Your NFT is Ready!
+                        </p>
+                        
+                        {/* Display the actual NFT image */}
+                        <div className="mb-4">
+                          <img 
+                            src={generatedNFTData.imageUri} 
+                            alt={`Shared Sediments #${generatedNFTData.tokenId}`}
+                            className="mx-auto rounded-lg shadow-lg max-w-sm w-full"
+                            style={{ border: '2px solid var(--accent-primary)' }}
+                            onError={(e) => {
+                              console.log('Image failed to load, showing placeholder');
+                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x400/1a1a2e/00d4ff?text=Loading...';
+                            }}
+                          />
+                        </div>
+                        
+                        <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                          Your unique geological pattern has been generated and stored on the decentralized network
+                        </p>
+                        
+                        <div className="flex gap-2 justify-center">
+                          <a 
+                            href={generatedNFTData.imageUri} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="btn btn-secondary px-4 py-2 text-sm"
+                            style={{ background: 'var(--gradient-button)', border: 'none', color: 'white' }}
+                          >
+                            🔗 View Full Size
+                          </a>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(generatedNFTData.imageUri);
+                              alert('Image URL copied to clipboard!');
+                            }}
+                            className="btn btn-secondary px-4 py-2 text-sm"
+                            style={{ background: 'rgba(0, 212, 255, 0.2)', border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
+                          >
+                            📋 Copy Link
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isNFTGenerating ? (
+                    /* NFT is being generated - show animated loader */
+                    <div className="card p-4" style={{ background: 'rgba(250, 204, 21, 0.1)' }}>
+                      <div className="text-center">
+                        <div className="text-4xl mb-4">
+                          <div className="inline-block animate-spin" style={{ animationDuration: '2s' }}>🎨</div>
+                        </div>
+                        <p className="text-lg font-bold mb-2" style={{ color: '#facc15' }}>
+                          AI is Creating Your NFT...
+                        </p>
+                        <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                          This usually takes 30-60 seconds. We'll automatically show it when ready!
+                        </p>
+                        
+                        {/* Animated progress dots */}
+                        <div className="flex justify-center gap-1 mb-4">
+                          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                        </div>
+                        
+                        <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                          Listening for blockchain events...
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Fallback - manual check */
                     <div className="card p-4" style={{ background: 'rgba(250, 204, 21, 0.1)' }}>
                       <div className="text-center">
                         <div className="text-3xl mb-2">⏳</div>
@@ -521,6 +687,7 @@ function MintNFTInner() {
                         </p>
                         <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
                           Your NFT is being created. This usually takes 30-60 seconds.
+                          {!isNFTGenerating && ' Event monitoring has stopped - you can manually check if it\'s ready.'}
                         </p>
                         
                         <button
