@@ -17,6 +17,9 @@
     "hardhat:test": "hardhat test solidity",
     "hardhat:node": "hardhat node",
     "hardhat:deploy": "hardhat run scripts/deploy-memento.ts",
+    "deploy": "node scripts/deploy.js",
+    "verify": "node scripts/verify.js",
+    "verify:contract": "npx hardhat verify --network flowTestnet",
     "backend:start": "node backend/index.js",
     "backend:dev": "node --watch backend/index.js"
   },

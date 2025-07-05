@@ -1,7 +1,8 @@
 import type { HardhatUserConfig } from "hardhat/config";
 import { configVariable } from "hardhat/config";
+import "@nomicfoundation/hardhat-verify";
 
-const config: HardhatUserConfig = {
+const config: any = {
   solidity: {
     profiles: {
       default: {
@@ -36,6 +37,30 @@ const config: HardhatUserConfig = {
       accounts: [configVariable("FLOW_MAINNET_PRIVATE_KEY")],
       chainId: 747,
     },
+  },
+  etherscan: {
+    apiKey: {
+      flowTestnet: "empty", // Flow EVM doesn't require API key
+      flowMainnet: "empty"
+    },
+    customChains: [
+      {
+        network: "flowTestnet",
+        chainId: 545,
+        urls: {
+          apiURL: "https://evm-testnet.flowscan.io/api",
+          browserURL: "https://evm-testnet.flowscan.io"
+        }
+      },
+      {
+        network: "flowMainnet", 
+        chainId: 747,
+        urls: {
+          apiURL: "https://evm.flowscan.io/api",
+          browserURL: "https://evm.flowscan.io"
+        }
+      }
+    ]
   },
 };
 
