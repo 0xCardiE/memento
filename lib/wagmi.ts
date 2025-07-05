@@ -146,13 +146,6 @@ export const MEMENTO_ABI = [
   // View functions
   {
     "inputs": [],
-    "name": "generationPrice",
-    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "totalMementos",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
     "stateMutability": "view",
@@ -203,6 +196,34 @@ export const MEMENTO_ABI = [
   {
     "inputs": [],
     "name": "getRemainingSupply",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getCurrentPrice",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "REGULAR_PRICE",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "EARLY_BIRD_PRICE",
+    "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "EARLY_BIRD_LIMIT",
     "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
     "stateMutability": "view",
     "type": "function"
@@ -260,13 +281,7 @@ export const MEMENTO_ABI = [
     "stateMutability": "nonpayable",
     "type": "function"
   },
-  {
-    "inputs": [{"internalType": "uint256", "name": "_newPrice", "type": "uint256"}],
-    "name": "setGenerationPrice",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
+
   {
     "inputs": [{"internalType": "string", "name": "_newPlaceholderUri", "type": "string"}],
     "name": "setPlaceholderImageUri",

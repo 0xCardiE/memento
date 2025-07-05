@@ -4,8 +4,8 @@ import './globals.css'
 import Web3Provider from '@/app/components/Web3Provider'
 
 export const metadata: Metadata = {
-  title: 'Memento Machina - AI-Powered Geological Pattern NFTs',
-  description: 'Create unique geological pattern NFTs with AI-generated artwork on Flow blockchain. Mint beautiful layered rock formations stored permanently on Swarm network.',
+  title: 'Memento Machina - Shared Sediments Vol 1',
+  description: 'Add your thoughts to collaborative geological patterns in this AI art time capsule. Each piece starts from a shared foundation, stored forever on decentralized networks.',
   keywords: ['NFT', 'AI', 'Flow', 'Geological', 'Pattern', 'Blockchain', 'Swarm'],
   authors: [{ name: 'Memento Machina' }],
 }

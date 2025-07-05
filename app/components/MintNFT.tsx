@@ -55,6 +55,12 @@ function MintNFTInner() {
     functionName: 'totalMementos',
   }) as { data: bigint | undefined };
 
+  const { data: currentPrice } = useReadContract({
+    address: contractAddress,
+    abi: MEMENTO_ABI,
+    functionName: 'getCurrentPrice',
+  }) as { data: bigint | undefined };
+
   // Read the user's mementos to find their latest mint
   const { data: userMementos, refetch: refetchUserMementos } = useReadContract({
     address: contractAddress,
@@ -141,16 +147,19 @@ function MintNFTInner() {
       fullPrompt += `. ${variations}`;
     }
 
-    // Create user-friendly display prompt
-    const displayPrompt = `Geological layers with ${colors}${variations ? ` (${variations})` : ''}`;
+    // Create user's description (colors + thoughts)
+    const userDescription = `${colors}${variations ? ` (${variations})` : ''}`;
 
     try {
+      // Use dynamic price from contract
+      const priceToSend = currentPrice ? currentPrice : parseEther('6.66');
+      
       writeContract({
         address: contractAddress,
         abi: MEMENTO_ABI,
         functionName: 'requestMemento',
-        args: [displayPrompt, 'Geological pattern NFT generated with AI', fullPrompt],
-        value: parseEther('6.66'),
+        args: [userDescription, userDescription, fullPrompt],
+        value: priceToSend,
       });
     } catch (err) {
       console.error('Error requesting memento:', err);
@@ -376,6 +385,40 @@ function MintNFTInner() {
       </div>
 
       <div className="mint-form">
+        {/* Early Bird Pricing Section */}
+        {totalMementos !== undefined && totalMementos < BigInt(200) && (
+          <div className="card mb-8" style={{ 
+            border: '1px solid #facc15', 
+            background: 'linear-gradient(135deg, rgba(250, 204, 21, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%)'
+          }}>
+            <div className="text-center">
+              <div className="text-3xl mb-2">🌟</div>
+              <h3 className="text-xl font-bold mb-2" style={{ color: '#facc15' }}>
+                Early Bird Special
+              </h3>
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                First 200 mints at half price! Only {200 - Number(totalMementos)} left
+              </p>
+              
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <div className="text-2xl font-bold text-red-400" style={{ textDecoration: 'line-through' }}>
+                  6.66 FLOW
+                </div>
+                <div className="text-2xl font-bold" style={{ color: '#facc15' }}>
+                  →
+                </div>
+                <div className="text-3xl font-bold" style={{ color: '#4ade80' }}>
+                  3.33 FLOW
+                </div>
+              </div>
+              
+              <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                50% off regular price
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Explanation */}
         <div className="card mb-8">
           <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--accent-primary)' }}>
@@ -472,7 +515,7 @@ function MintNFTInner() {
                   ? 'Preparing Transaction...'
                   : isConfirming
                   ? 'Confirming Payment...'
-                  : 'Add My Layer to Vol 1 (6.66 FLOW)'
+                  : `Add My Layer to Vol 1 (${currentPrice && totalMementos !== undefined && totalMementos < BigInt(200) ? '3.33' : '6.66'} FLOW)`
                 }
               </span>
             </button>

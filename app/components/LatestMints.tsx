@@ -71,11 +71,11 @@ function useMemento(tokenId: number | null, contractAddress: `0x${string}` | und
             // If it's an image file, create metadata object
             else if (contentType && (contentType.includes('image/') || contentType.includes('png') || contentType.includes('jpeg') || contentType.includes('jpg'))) {
               console.log(`Token ${tokenId} - Direct image URL detected`);
-              const metadata = {
-                name: mementoData[0] || `Memento #${tokenId}`,
-                description: mementoData[1] || 'Geological pattern NFT generated with AI',
-                image: imageUri
-              };
+                             const metadata = {
+                 name: `Shared Sediments #${tokenId}`,
+                 description: mementoData[0] || 'User input pending',
+                 image: imageUri
+               };
               setMetadata(metadata);
             }
             // Try to parse as JSON anyway (fallback)
@@ -94,8 +94,8 @@ function useMemento(tokenId: number | null, contractAddress: `0x${string}` | und
                 
                 // Assume it's a direct image URL
                 const metadata = {
-                  name: mementoData[0] || `Memento #${tokenId}`,
-                  description: mementoData[1] || 'Geological pattern NFT generated with AI',
+                  name: `Shared Sediments #${tokenId}`,
+                  description: mementoData[0] || 'User input pending',
                   image: imageUri
                 };
                 setMetadata(metadata);
@@ -110,8 +110,8 @@ function useMemento(tokenId: number | null, contractAddress: `0x${string}` | und
           
           // Create fallback metadata
           const metadata = {
-            name: mementoData[0] || `Memento #${tokenId}`,
-            description: mementoData[1] || 'Geological pattern NFT generated with AI',
+            name: `Shared Sediments #${tokenId}`,
+            description: mementoData[0] || 'User input pending',
             image: imageUri // Use the URI as is, might be a direct image
           };
           setMetadata(metadata);
@@ -262,7 +262,7 @@ export default function LatestMints() {
               {memento.isGenerated && memento.metadata?.image ? (
                 <Image
                   src={memento.metadata.image}
-                  alt={memento.metadata.name || `Memento #${memento.tokenId}`}
+                  alt={memento.metadata.name || `Shared Sediments #${memento.tokenId}`}
                   width={300}
                   height={300}
                   className="nft-image"
@@ -301,11 +301,11 @@ export default function LatestMints() {
             
             <div className="nft-info">
               <h3 className="nft-title">
-                {memento.metadata?.name || memento.title || `Memento #${memento.tokenId}`}
+                {memento.metadata?.name || `Shared Sediments #${memento.tokenId}`}
               </h3>
-              <p className="nft-description">
-                {memento.metadata?.description || memento.content || 'Geological pattern NFT'}
-              </p>
+                              <p className="nft-description">
+                  {memento.metadata?.description || memento.title || 'User input pending'}
+                </p>
               <div className="nft-meta">
                 <div className="nft-meta-item">
                   <span className="nft-meta-label">Token ID:</span>
