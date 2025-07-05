@@ -40,6 +40,119 @@ This project includes:
 - **Multi-Network Support**: Works on both Flow EVM testnet and mainnet
 - **Real-time Updates**: NFT URIs automatically updated with final artwork URLs
 
+## 🏗️ System Architecture
+
+The Memento Machina platform consists of **four main components** that work together to create AI-generated NFTs:
+
+### Component Overview
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │    │                 │    │                 │
+│   Frontend      │    │  Smart Contract │    │  Backend Service│    │  SWARM Network  │
+│   (Next.js)     │    │   (Flow EVM)    │    │   (Node.js)     │    │ (Decentralized) │
+│                 │    │                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Data Flow
+
+**1. NFT Minting Process:**
+```
+User → Frontend → Smart Contract → Event Emission
+                      ↓
+                 Backend Listens → OpenAI DALL-E → SWARM Storage → Update NFT Metadata
+```
+
+**2. Component Interactions:**
+
+#### 🖥️ **Frontend (Next.js App)**
+- **Role**: User interface and wallet integration
+- **Interactions**: 
+  - **WITH Smart Contract**: Direct blockchain transactions (minting, reading data)
+  - **NOT WITH**: SWARM network (never directly communicates)
+- **Technology**: Next.js 15, RainbowKit, Wagmi, Flow EVM
+- **Deployment**: Static export to CDN/hosting service
+
+#### 📄 **Smart Contract (Flow EVM)**
+- **Role**: NFT management and event coordination
+- **Functions**:
+  - Accepts mint payments (6.66 FLOW)
+  - Emits `MementoRequested` events with user prompts
+  - Stores NFT metadata URLs (updated by backend)
+  - Handles standard ERC-721 functionality
+- **Networks**: Flow EVM Testnet (545) and Mainnet (747)
+
+#### 🤖 **Backend Service (Node.js)**
+- **Role**: AI generation and SWARM storage orchestration
+- **Process Flow**:
+  1. **Listens** to `MementoRequested` events from smart contract
+  2. **Generates** AI images using OpenAI DALL-E 3
+  3. **Stores** images and metadata on SWARM network
+  4. **Updates** NFT metadata URI in smart contract
+- **Deployment**: Server with Node.js runtime
+- **Port**: Configurable (typically 3001 or 8080)
+- **Requirements**: Access to SWARM node (local or remote gateway)
+
+#### 🌐 **SWARM Network**
+- **Role**: Decentralized storage for images and metadata
+- **Communication**: 
+  - **WITH Backend**: HTTP API calls to SWARM gateway
+  - **NOT WITH**: Frontend (no direct interaction)
+- **Storage**: Permanent, content-addressed storage
+- **Access**: Via SWARM gateways or local SWARM nodes
+
+### Backend Service Details
+
+The backend service is a **standalone Node.js application** that:
+
+**Runs independently** from the frontend:
+- Deployed on a server (can be same or different from frontend)
+- Listens on a specific port for API calls (if needed)
+- Communicates with SWARM node via HTTP API
+
+**SWARM Node Configuration**:
+- **Option 1**: Local SWARM node running on same server
+- **Option 2**: Remote SWARM gateway (e.g., `https://gateway.ethswarm.org`)
+- **Configuration**: Set via `SWARM_GATEWAY` environment variable
+
+**Event-Driven Processing**:
+```javascript
+// Backend listens to blockchain events
+contract.on('MementoRequested', async (tokenId, user, title, content, aiPrompt) => {
+  // 1. Generate AI image with OpenAI
+  const imageUrl = await generateImage(aiPrompt);
+  
+  // 2. Store image on SWARM
+  const swarmUrl = await storeOnSwarm(imageBuffer);
+  
+  // 3. Update NFT metadata in smart contract
+  await contract.updateMementoUri(tokenId, metadataUrl);
+});
+```
+
+### Key Architectural Benefits
+
+**🔒 Security**: Frontend never handles private keys for SWARM or AI services
+**⚡ Performance**: AI generation happens asynchronously, doesn't block user interface
+**🌍 Decentralization**: Images stored on SWARM, not centralized servers
+**🔄 Reliability**: Event-driven system ensures no lost mint requests
+**📱 User Experience**: Users get immediate NFT, artwork appears when ready
+
+### Deployment Architecture
+
+**Production Setup**:
+```
+CDN/Vercel (Frontend) → Flow EVM (Smart Contract) ← VPS/Server (Backend + SWARM)
+```
+
+**Local Development**:
+```
+localhost:3000 (Frontend) → Flow Testnet (Smart Contract) ← localhost:3001 (Backend)
+```
+
+The backend service runs **continuously** and processes NFT generation requests as they come in from the blockchain events.
+
 ## Setup
 
 ### Configuration Variables
