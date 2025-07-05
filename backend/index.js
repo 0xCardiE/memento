@@ -214,39 +214,15 @@ async function updateNFTImageUri(tokenId, imageUrl) {
     console.log(`🔄 Updating NFT image URI for Token ID: ${tokenId}`);
     console.log(`🖼️  Image URL: ${imageUrl}`);
     
-    // Get current nonce to avoid conflicts with retry logic
-    let retryCount = 0;
-    const maxRetries = 3;
-    let tx, receipt;
+    // Send transaction with sufficient gas (let provider handle nonce automatically)
+    const tx = await contract.updateMementoUri(tokenId, imageUrl, {
+      gasLimit: 200000, // Higher gas limit to ensure transaction passes
+    });
     
-    while (retryCount < maxRetries) {
-      try {
-        const currentNonce = await wallet.getNonce('pending');
-        console.log(`🎯 Using nonce: ${currentNonce} (attempt ${retryCount + 1}/${maxRetries})`);
-        
-        tx = await contract.updateMementoUri(tokenId, imageUrl, {
-          nonce: currentNonce,
-          gasLimit: 200000, // Explicit gas limit
-        });
-        
-        console.log(`⏳ Transaction sent with nonce ${currentNonce}, hash: ${tx.hash}`);
-        receipt = await tx.wait();
-        
-        console.log(`✅ NFT image URI updated successfully in smart contract. Block: ${receipt.blockNumber}`);
-        break; // Success, exit retry loop
-        
-      } catch (txError) {
-        retryCount++;
-        console.error(`❌ Transaction attempt ${retryCount} failed:`, txError.message);
-        
-        if (txError.message.includes('nonce') && retryCount < maxRetries) {
-          console.log(`⏳ Retrying with fresh nonce in 2 seconds...`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } else {
-          throw txError; // Re-throw if not nonce-related or max retries reached
-        }
-      }
-    }
+    console.log(`⏳ Transaction sent, hash: ${tx.hash}`);
+    const receipt = await tx.wait();
+    
+    console.log(`✅ NFT image URI updated successfully in smart contract. Block: ${receipt.blockNumber}`);
     
     return imageUrl;
   } catch (error) {
