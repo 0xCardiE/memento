@@ -253,10 +253,40 @@ async function updateNFTMetadata(tokenId, title, content, imageUrl) {
     
     // Update NFT URI in contract with IMAGE URL (contract constructs JSON on-demand)
     console.log(`🔄 Updating smart contract with image URL: ${imageUrl}`);
-    const tx = await contract.updateMementoUri(tokenId, imageUrl);
-    await tx.wait();
     
-    console.log(`✅ NFT image URI updated successfully in smart contract. Transaction: ${tx.hash}`);
+    // Get current nonce to avoid conflicts with retry logic
+    let retryCount = 0;
+    const maxRetries = 3;
+    let tx, receipt;
+    
+    while (retryCount < maxRetries) {
+      try {
+        const currentNonce = await wallet.getNonce('pending');
+        console.log(`🎯 Using nonce: ${currentNonce} (attempt ${retryCount + 1}/${maxRetries})`);
+        
+        tx = await contract.updateMementoUri(tokenId, imageUrl, {
+          nonce: currentNonce,
+          gasLimit: 200000, // Explicit gas limit
+        });
+        
+        console.log(`⏳ Transaction sent with nonce ${currentNonce}, hash: ${tx.hash}`);
+        receipt = await tx.wait();
+        
+        console.log(`✅ NFT image URI updated successfully in smart contract. Block: ${receipt.blockNumber}`);
+        break; // Success, exit retry loop
+        
+      } catch (txError) {
+        retryCount++;
+        console.error(`❌ Transaction attempt ${retryCount} failed:`, txError.message);
+        
+        if (txError.message.includes('nonce') && retryCount < maxRetries) {
+          console.log(`⏳ Retrying with fresh nonce in 2 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        } else {
+          throw txError; // Re-throw if not nonce-related or max retries reached
+        }
+      }
+    }
     
     return metadataUrl;
   } catch (error) {
@@ -272,6 +302,21 @@ async function processMementoRequest(tokenId, title, content, aiPrompt) {
     console.log(`📝 Title: ${title}`);
     console.log(`📄 Content: ${content}`);
     console.log(`🎨 AI Prompt: ${aiPrompt}`);
+    
+    // Check if this memento already has an image to avoid duplicate processing
+    try {
+      const mementoData = await contract.getMemento(tokenId);
+      const isGenerated = mementoData[7]; // isGenerated is the 8th element (index 7)
+      
+      if (isGenerated) {
+        console.log(`⚠️ Token ID ${tokenId} already has generated image, skipping processing`);
+        return null;
+      }
+      
+      console.log(`✅ Token ID ${tokenId} needs generation, proceeding...`);
+    } catch (checkError) {
+      console.log(`⚠️ Could not check existing memento status (${checkError.message}), proceeding with generation...`);
+    }
     
     // Generate image
     const imageUrl = await generateImage(aiPrompt);
@@ -299,6 +344,7 @@ async function processMementoRequest(tokenId, title, content, aiPrompt) {
 
 // Track processed token IDs to prevent duplicates
 const processedTokenIds = new Set();
+const processingTokenIds = new Set(); // Track currently processing tokens
 
 // Event listener for MementoRequested events with Flow EVM compatibility
 async function startEventListener() {
@@ -332,17 +378,33 @@ async function startEventListener() {
         console.log(`⏰ Timestamp: ${timestamp.toString()}`);
         console.log(`🔗 Transaction: ${event.transactionHash}`);
         
-        // Check if already processed to prevent duplicates
+        // Check if already processed or currently being processed
         if (processedTokenIds.has(tokenIdStr)) {
           console.log(`⚠️ Token ID ${tokenIdStr} already processed, skipping duplicate`);
           return;
         }
         
+        if (processingTokenIds.has(tokenIdStr)) {
+          console.log(`⚠️ Token ID ${tokenIdStr} currently being processed, skipping duplicate`);
+          return;
+        }
+        
         // Mark as being processed
-        processedTokenIds.add(tokenIdStr);
+        processingTokenIds.add(tokenIdStr);
         console.log(`✅ Processing Token ID ${tokenIdStr} (real-time event)`);
         
-        await processMementoRequest(tokenIdStr, title, content, aiPrompt);
+        try {
+          await processMementoRequest(tokenIdStr, title, content, aiPrompt);
+          // Mark as completed
+          processedTokenIds.add(tokenIdStr);
+          console.log(`✅ Token ID ${tokenIdStr} processing completed successfully`);
+        } catch (error) {
+          console.error(`❌ Failed to process Token ID ${tokenIdStr}:`, error.message);
+          throw error;
+        } finally {
+          // Remove from processing set
+          processingTokenIds.delete(tokenIdStr);
+        }
       } catch (error) {
         console.error(`❌ Failed to process memento request:`, error.message);
         console.error(`❌ Error details:`, error);

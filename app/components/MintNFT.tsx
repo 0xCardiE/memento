@@ -30,36 +30,36 @@ function MintNFTInner() {
   const [recentMintId, setRecentMintId] = useState<number | null>(null);
   const [showRevealSection, setShowRevealSection] = useState(false);
 
-  // Read contract data
-  const { data: isMintingActive } = useReadContract({
+  // Read contract data with refetch functions
+  const { data: isMintingActive, refetch: refetchMintingActive } = useReadContract({
     address: contractAddress,
     abi: MEMENTO_ABI,
     functionName: 'isMintingActive',
-  }) as { data: boolean | undefined };
+  }) as { data: boolean | undefined; refetch: () => void };
 
-  const { data: remainingSupply } = useReadContract({
+  const { data: remainingSupply, refetch: refetchRemainingSupply } = useReadContract({
     address: contractAddress,
     abi: MEMENTO_ABI,
     functionName: 'getRemainingSupply',
-  }) as { data: bigint | undefined };
+  }) as { data: bigint | undefined; refetch: () => void };
 
-  const { data: remainingTime } = useReadContract({
+  const { data: remainingTime, refetch: refetchRemainingTime } = useReadContract({
     address: contractAddress,
     abi: MEMENTO_ABI,
     functionName: 'getRemainingMintTime',
-  }) as { data: bigint | undefined };
+  }) as { data: bigint | undefined; refetch: () => void };
 
-  const { data: totalMementos } = useReadContract({
+  const { data: totalMementos, refetch: refetchTotalMementos } = useReadContract({
     address: contractAddress,
     abi: MEMENTO_ABI,
     functionName: 'totalMementos',
-  }) as { data: bigint | undefined };
+  }) as { data: bigint | undefined; refetch: () => void };
 
-  const { data: currentPrice } = useReadContract({
+  const { data: currentPrice, refetch: refetchCurrentPrice } = useReadContract({
     address: contractAddress,
     abi: MEMENTO_ABI,
     functionName: 'getCurrentPrice',
-  }) as { data: bigint | undefined };
+  }) as { data: bigint | undefined; refetch: () => void };
 
   // Read the user's mementos to find their latest mint
   const { data: userMementos, refetch: refetchUserMementos } = useReadContract({
@@ -94,6 +94,24 @@ function MintNFTInner() {
     return `${minutes}m`;
   };
 
+  // Refresh all contract state
+  const refreshContractState = async () => {
+    console.log('🔄 Refreshing contract state...');
+    try {
+      await Promise.all([
+        refetchMintingActive(),
+        refetchRemainingSupply(),
+        refetchRemainingTime(),
+        refetchTotalMementos(),
+        refetchCurrentPrice(),
+        refetchUserMementos(),
+      ]);
+      console.log('✅ Contract state refreshed');
+    } catch (error) {
+      console.error('❌ Failed to refresh contract state:', error);
+    }
+  };
+
   // Handle successful transaction
   useEffect(() => {
     if (isConfirmed && userMementos && userMementos.length > 0) {
@@ -101,6 +119,9 @@ function MintNFTInner() {
       const latestMintId = Number(userMementos[userMementos.length - 1]);
       setRecentMintId(latestMintId);
       setShowRevealSection(true);
+      
+      // Refresh contract state to show updated counts and pricing
+      refreshContractState();
     }
   }, [isConfirmed, userMementos]);
 
@@ -169,8 +190,11 @@ function MintNFTInner() {
 
   const handleRevealNFT = async () => {
     if (recentMintId !== null) {
+      console.log('🔄 Checking NFT generation status...');
       await refetchRecentMemento();
       await refetchUserMementos();
+      // Also refresh contract state in case there are updates
+      await refreshContractState();
     }
   };
 
