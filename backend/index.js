@@ -1,9 +1,17 @@
 import { ethers } from 'ethers';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Load environment variables
-dotenv.config();
+// Get the directory name for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from root directory
+const envPath = path.join(__dirname, '..', '.env');
+console.log(`🔍 Loading .env from: ${envPath}`);
+dotenv.config({ path: envPath });
 
 // Environment variables
 const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
@@ -11,6 +19,16 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const SWARM_GATEWAY = process.env.SWARM_GATEWAY || 'https://gateway.ethswarm.org';
 const SWARM_BATCH_ID = process.env.SWARM_BATCH_ID || 'c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278';
 const NETWORK = process.env.NETWORK || 'testnet';
+
+// Debug environment variables (without sensitive data)
+console.log(`🔧 Environment variables loaded:`);
+console.log(`   NETWORK: ${NETWORK}`);
+console.log(`   ADMIN_PRIVATE_KEY: ${ADMIN_PRIVATE_KEY ? '✅ Found' : '❌ Missing'}`);
+console.log(`   OPENAI_API_KEY: ${OPENAI_API_KEY ? '✅ Found' : '❌ Missing'}`);
+console.log(`   CONTRACT_ADDRESS_TESTNET: ${process.env.CONTRACT_ADDRESS_TESTNET ? '✅ Found' : '❌ Missing'}`);
+console.log(`   CONTRACT_ADDRESS_MAINNET: ${process.env.CONTRACT_ADDRESS_MAINNET ? '✅ Found' : '❌ Missing'}`);
+console.log(`   SWARM_GATEWAY: ${SWARM_GATEWAY}`);
+console.log(`   SWARM_BATCH_ID: ${SWARM_BATCH_ID ? '✅ Found' : '❌ Missing'}`);
 
 // Default image generation settings
 const DEFAULT_IMAGE_SIZE = '1024x1024';
