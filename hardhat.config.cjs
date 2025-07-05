@@ -13,6 +13,7 @@ const config = {
   networks: {
     // Flow EVM Testnet
     flowTestnet: {
+      type: "http",
       url: "https://testnet.evm.nodes.onflow.org",
       accounts: process.env.HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY ? [process.env.HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY] : [],
       chainId: 545,
@@ -20,6 +21,7 @@ const config = {
     
     // Flow EVM Mainnet
     flowMainnet: {
+      type: "http",
       url: "https://mainnet.evm.nodes.onflow.org",
       accounts: process.env.HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY ? [process.env.HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY] : [],
       chainId: 747,
@@ -27,6 +29,7 @@ const config = {
     
     // Gnosis Chain (for SwarmVault deployment)
     gnosis: {
+      type: "http",
       url: "https://rpc.gnosischain.com",
       accounts: process.env.HARDHAT_VAR_GNOSIS_PRIVATE_KEY ? [process.env.HARDHAT_VAR_GNOSIS_PRIVATE_KEY] : [],
       chainId: 100,
