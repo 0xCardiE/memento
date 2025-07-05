@@ -581,15 +581,6 @@ function MintNFTInner() {
                     <span>NFT metadata is updated on the blockchain</span>
                   </div>
                 </div>
-                
-                <div className="mt-4 p-3 rounded-lg" style={{ 
-                  background: 'rgba(250, 204, 21, 0.1)',
-                  border: '1px solid rgba(250, 204, 21, 0.2)'
-                }}>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    ⏱️ <strong>Generation Time:</strong> This process typically takes 30-60 seconds
-                  </p>
-                </div>
               </div>
 
               {recentMintId !== null && (

@@ -25,7 +25,7 @@ function HomePage() {
         {/* Hero Section */}
         <section className="hero mb-16">
           <div className="hero-title mb-4">
-            Super Rare - Vol 1.
+          Shared Sediments
           </div>
           <div className="hero-subtitle mb-8">
             A collaborative time capsule capturing AI art in 2025. Add your thoughts to shared geological patterns, stored forever on decentralized networks.
@@ -88,7 +88,7 @@ function HomePage() {
               <img 
                 src="/flow.png" 
                 alt="Flow" 
-                style={{ height: '20px', filter: 'brightness(0) invert(1)' }}
+
               />
               <span className="font-semibold">Flow EVM</span>
             </a>
@@ -102,7 +102,7 @@ function HomePage() {
               <img 
                 src="/hardhat.png" 
                 alt="Hardhat" 
-                style={{ height: '20px', filter: 'brightness(0) invert(1)' }}
+
               />
               <span className="font-semibold">Hardhat</span>
             </a>
@@ -114,9 +114,9 @@ function HomePage() {
               className="footer-link"
             >
               <img 
-                src="/swarm.jpg" 
+                src="/swarm.png" 
                 alt="Swarm" 
-                style={{ height: '20px', filter: 'brightness(0) invert(1)' }}
+            
               />
               <span className="font-semibold">Swarm</span>
             </a>
