@@ -118,9 +118,9 @@ function MintNFTInner() {
   return (
     <section className="max-w-4xl mx-auto">
       <div className="mint-header">
-        <h2 className="text-3xl font-bold mb-4">Create Your NFT</h2>
+        <h2 className="text-3xl font-bold mb-4">Create Your Personal Memento</h2>
         <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
-          Design your unique geological pattern with AI
+          Share your feelings and thoughts to create a unique AI-generated geological NFT
         </p>
       </div>
 
@@ -128,12 +128,12 @@ function MintNFTInner() {
         {/* Explanation */}
         <div className="card mb-8">
           <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--accent-primary)' }}>
-            What You'll Get
+            Your Personal Geological Portrait
           </h3>
           <div className="space-y-3" style={{ color: 'var(--text-secondary)' }}>
-            <p><strong>Horizontal layered patterns</strong> that look like cross-sections of canyon walls, rock formations, or sedimentary deposits.</p>
-            <p><strong>Natural wavy boundaries</strong> between each layer, creating an organic, earthy appearance.</p>
-            <p><strong>Cohesive color palettes</strong> that work together harmoniously.</p>
+            <p><strong>Emotional landscapes</strong> - AI transforms your feelings into horizontal layered patterns that reflect your inner state.</p>
+            <p><strong>Thought-inspired textures</strong> - Your random thoughts and reflections influence the natural wavy boundaries between layers.</p>
+            <p><strong>Personal color story</strong> - The colors you choose to represent your mood create a unique geological time capsule.</p>
           </div>
         </div>
 
@@ -200,7 +200,7 @@ function MintNFTInner() {
                 {isPending ? 'Confirming Transaction...' : 'Processing...'}
               </>
             ) : (
-              'Generate Geological Pattern NFT (6.66 FLOW)'
+              'Create My Personal Memento (6.66 FLOW)'
             )}
           </button>
         </form>
