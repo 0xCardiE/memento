@@ -22,6 +22,9 @@ contract MementoVol1 is ERC721, Ownable {
     uint256 public totalMementos;
     uint256 public nextTokenId;
     uint256 public generationPrice = 6.66 ether; // 6.66 FLOW
+    uint256 public constant MAX_SUPPLY = 1000; // Maximum 1000 NFTs
+    uint256 public immutable deploymentTimestamp; // Contract deployment time
+    uint256 public constant MINTING_DURATION = 7 days; // 7-day minting window
     
     string public placeholderImageUri = "https://via.placeholder.com/512x512.png?text=AI+Generation+Pending";
 
@@ -42,13 +45,14 @@ contract MementoVol1 is ERC721, Ownable {
     );
 
     modifier onlyTokenExists(uint256 _tokenId) {
-        require(_tokenId < nextTokenId, "Token does not exist");
+        require(_tokenId >= 1 && _tokenId < nextTokenId, "Token does not exist");
         _;
     }
 
     constructor() ERC721("Memento Machina", "MEMO") Ownable(msg.sender) {
-        nextTokenId = 0;
+        nextTokenId = 1; // Start NFT numbering from 1
         totalMementos = 0;
+        deploymentTimestamp = block.timestamp; // Record deployment time for minting deadline
     }
 
     /**
@@ -63,6 +67,8 @@ contract MementoVol1 is ERC721, Ownable {
         require(bytes(_title).length > 0, "Title cannot be empty");
         require(bytes(_content).length > 0, "Content cannot be empty");
         require(bytes(_aiPrompt).length > 0, "AI prompt cannot be empty");
+        require(totalMementos < MAX_SUPPLY, "Maximum supply of 1000 NFTs reached");
+        require(block.timestamp <= deploymentTimestamp + MINTING_DURATION, "Minting period has ended (7 days)");
 
         uint256 tokenId = nextTokenId;
         
@@ -145,8 +151,8 @@ contract MementoVol1 is ERC721, Ownable {
     function getPendingMementos() external view returns (uint256[] memory) {
         uint256 count = 0;
         
-        // Count pending mementos
-        for (uint256 i = 0; i < nextTokenId; i++) {
+        // Count pending mementos (start from token ID 1)
+        for (uint256 i = 1; i < nextTokenId; i++) {
             if (mementos[i].isActive && !mementos[i].isGenerated) {
                 count++;
             }
@@ -155,7 +161,7 @@ contract MementoVol1 is ERC721, Ownable {
         // Collect pending token IDs
         uint256[] memory pendingTokens = new uint256[](count);
         uint256 index = 0;
-        for (uint256 i = 0; i < nextTokenId; i++) {
+        for (uint256 i = 1; i < nextTokenId; i++) {
             if (mementos[i].isActive && !mementos[i].isGenerated) {
                 pendingTokens[index] = i;
                 index++;
@@ -167,6 +173,31 @@ contract MementoVol1 is ERC721, Ownable {
 
     function getUserMementos(address _user) external view returns (uint256[] memory) {
         return userMementos[_user];
+    }
+
+    /**
+     * @dev Check if minting is still active
+     */
+    function isMintingActive() external view returns (bool) {
+        return block.timestamp <= deploymentTimestamp + MINTING_DURATION && totalMementos < MAX_SUPPLY;
+    }
+
+    /**
+     * @dev Get remaining time for minting (in seconds)
+     */
+    function getRemainingMintTime() external view returns (uint256) {
+        uint256 endTime = deploymentTimestamp + MINTING_DURATION;
+        if (block.timestamp >= endTime) {
+            return 0;
+        }
+        return endTime - block.timestamp;
+    }
+
+    /**
+     * @dev Get remaining supply
+     */
+    function getRemainingSupply() external view returns (uint256) {
+        return MAX_SUPPLY - totalMementos;
     }
 
     function setGenerationPrice(uint256 _newPrice) external onlyOwner {

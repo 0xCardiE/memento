@@ -88,10 +88,15 @@ if (!contractAddress) {
 }
 
 const contractABI = [
-  "event MementoRequested(uint256 indexed tokenId, address indexed user, string title, string content, string aiPrompt)",
-  "event MementoGenerated(uint256 indexed tokenId, string imageUrl)",
+  "event MementoRequested(uint256 indexed tokenId, address indexed creator, string title, string content, string aiPrompt, uint256 timestamp)",
+  "event MementoGenerated(uint256 indexed tokenId, address indexed creator, string imageUri, uint256 timestamp)",
   "function updateMementoUri(uint256 tokenId, string memory uri) external",
   "function getPendingMementos() external view returns (uint256[] memory)",
+  "function getMemento(uint256 tokenId) external view returns (string memory title, string memory content, string memory aiPrompt, address creator, uint256 timestamp, bool isActive, string memory imageUri, bool isGenerated)",
+  "function isMintingActive() external view returns (bool)",
+  "function getRemainingSupply() external view returns (uint256)",
+  "function getRemainingMintTime() external view returns (uint256)",
+  "function totalMementos() external view returns (uint256)",
   "function owner() external view returns (address)"
 ];
 
@@ -308,11 +313,12 @@ async function startEventListener() {
         
         // Extract event data - last argument is the event object
         const event = args[args.length - 1];
-        const [tokenId, user, title, content, aiPrompt] = args.slice(0, -1);
+        const [tokenId, creator, title, content, aiPrompt, timestamp] = args.slice(0, -1);
         
         console.log(`\n🔔 New MementoRequested event detected!`);
         console.log(`🎯 Token ID: ${tokenId.toString()}`);
-        console.log(`👤 User: ${user}`);
+        console.log(`👤 Creator: ${creator}`);
+        console.log(`⏰ Timestamp: ${timestamp.toString()}`);
         console.log(`🔗 Transaction: ${event.transactionHash}`);
         
         await processMementoRequest(tokenId.toString(), title, content, aiPrompt);
@@ -388,7 +394,11 @@ async function startEventListener() {
           for (const event of events) {
             console.log(`🔄 Processing event from block ${event.blockNumber}`);
             console.log(`🔄 Event details:`, event);
-            const { tokenId, user, title, content, aiPrompt } = event.args;
+            const { tokenId, creator, title, content, aiPrompt, timestamp } = event.args;
+            
+            console.log(`🎯 Processing Token ID: ${tokenId.toString()}`);
+            console.log(`👤 Creator: ${creator}`);
+            console.log(`⏰ Timestamp: ${timestamp.toString()}`);
             
             try {
               await processMementoRequest(tokenId.toString(), title, content, aiPrompt);

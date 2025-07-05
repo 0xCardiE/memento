@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId, useReadContract } from 'wagmi';
 import { parseEther } from 'viem';
 import { MEMENTO_ABI } from '@/lib/wagmi';
 import dynamic from 'next/dynamic';
@@ -26,6 +26,46 @@ function MintNFTInner() {
     hash,
   });
 
+  // Read contract data
+  const { data: isMintingActive } = useReadContract({
+    address: contractAddress,
+    abi: MEMENTO_ABI,
+    functionName: 'isMintingActive',
+  }) as { data: boolean | undefined };
+
+  const { data: remainingSupply } = useReadContract({
+    address: contractAddress,
+    abi: MEMENTO_ABI,
+    functionName: 'getRemainingSupply',
+  }) as { data: bigint | undefined };
+
+  const { data: remainingTime } = useReadContract({
+    address: contractAddress,
+    abi: MEMENTO_ABI,
+    functionName: 'getRemainingMintTime',
+  }) as { data: bigint | undefined };
+
+  const { data: totalMementos } = useReadContract({
+    address: contractAddress,
+    abi: MEMENTO_ABI,
+    functionName: 'totalMementos',
+  }) as { data: bigint | undefined };
+
+  // Format time remaining
+  const formatTimeRemaining = (seconds: bigint | undefined) => {
+    if (!seconds) return 'Unknown';
+    const totalSeconds = Number(seconds);
+    if (totalSeconds <= 0) return 'Minting ended';
+    
+    const days = Math.floor(totalSeconds / (24 * 60 * 60));
+    const hours = Math.floor((totalSeconds % (24 * 60 * 60)) / (60 * 60));
+    const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+    
+    if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m`;
+  };
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -44,6 +84,11 @@ function MintNFTInner() {
 
     if (!contractAddress) {
       alert('Contract not deployed on this network. Please switch to Flow EVM Testnet or Mainnet.');
+      return;
+    }
+
+    if (!isMintingActive) {
+      alert('Minting is no longer active. The 7-day window has ended or all 1000 NFTs have been minted.');
       return;
     }
 
@@ -124,6 +169,60 @@ function MintNFTInner() {
         </p>
       </div>
 
+      {/* Minting Status */}
+      <div className="card mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold" style={{ color: 'var(--accent-primary)' }}>
+            Limited Collection Status
+          </h3>
+          <div className={`px-3 py-1 rounded-full text-sm font-bold ${
+            isMintingActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+          }`}>
+            {isMintingActive ? '✅ Active' : '🚫 Ended'}
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div className="stat-item">
+            <div className="text-2xl font-bold" style={{ color: 'var(--accent-primary)' }}>
+              {remainingSupply ? Number(remainingSupply).toLocaleString() : '---'}
+            </div>
+            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Remaining Supply
+            </div>
+          </div>
+          
+          <div className="stat-item">
+            <div className="text-2xl font-bold" style={{ color: 'var(--accent-primary)' }}>
+              {totalMementos ? Number(totalMementos).toLocaleString() : '---'}
+            </div>
+            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Already Minted
+            </div>
+          </div>
+          
+          <div className="stat-item">
+            <div className="text-2xl font-bold" style={{ color: 'var(--accent-primary)' }}>
+              {formatTimeRemaining(remainingTime)}
+            </div>
+            <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              Time Remaining
+            </div>
+          </div>
+        </div>
+        
+        {!isMintingActive && (
+          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <p className="text-red-400 text-center font-bold">
+              🚫 Minting Period Has Ended
+            </p>
+            <p className="text-red-300 text-center text-sm mt-1">
+              The 7-day minting window has closed or all 1000 NFTs have been minted.
+            </p>
+          </div>
+        )}
+      </div>
+
       <div className="mint-form">
         {/* Explanation */}
         <div className="card mb-8">
@@ -192,13 +291,15 @@ function MintNFTInner() {
           <button 
             type="submit" 
             className="btn btn-primary btn-full"
-            disabled={isPending || isConfirming}
+            disabled={isPending || isConfirming || !isMintingActive}
           >
             {isPending || isConfirming ? (
               <>
                 <div className="spinner"></div>
                 {isPending ? 'Confirming Transaction...' : 'Processing...'}
               </>
+            ) : !isMintingActive ? (
+              'Minting Period Ended'
             ) : (
               'Create My Personal Memento (6.66 FLOW)'
             )}
