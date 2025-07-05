@@ -65,7 +65,7 @@ function HomePage() {
 
         <footer className="mt-16 text-center text-gray-500">
           <p className="mb-4">Built with</p>
-          <div className="flex justify-center items-center gap-6 flex-wrap">
+          <div className="flex justify-center items-center gap-4 flex-wrap">
             <a 
               href="https://flow.com" 
               target="_blank" 
@@ -79,6 +79,7 @@ function HomePage() {
               />
               <span className="font-semibold">Flow</span>
             </a>
+            <span className="text-gray-400 font-bold">+</span>
             <a 
               href="https://hardhat.org" 
               target="_blank" 
@@ -92,6 +93,7 @@ function HomePage() {
               />
               <span className="font-semibold">Hardhat 3</span>
             </a>
+            <span className="text-gray-400 font-bold">+</span>
             <a 
               href="https://www.ethswarm.org" 
               target="_blank" 
