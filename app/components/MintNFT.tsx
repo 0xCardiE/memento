@@ -26,6 +26,10 @@ function MintNFTInner() {
     hash,
   });
 
+  // State for tracking recent mint
+  const [recentMintId, setRecentMintId] = useState<number | null>(null);
+  const [showRevealSection, setShowRevealSection] = useState(false);
+
   // Read contract data
   const { data: isMintingActive } = useReadContract({
     address: contractAddress,
@@ -51,6 +55,24 @@ function MintNFTInner() {
     functionName: 'totalMementos',
   }) as { data: bigint | undefined };
 
+  // Read the user's mementos to find their latest mint
+  const { data: userMementos, refetch: refetchUserMementos } = useReadContract({
+    address: contractAddress,
+    abi: MEMENTO_ABI,
+    functionName: 'getUserMementos',
+    args: address ? [address] : undefined,
+    query: { enabled: !!address && !!contractAddress }
+  }) as { data: bigint[] | undefined; refetch: () => void };
+
+  // Get memento data for the recent mint
+  const { data: recentMementoData, refetch: refetchRecentMemento } = useReadContract({
+    address: contractAddress,
+    abi: MEMENTO_ABI,
+    functionName: 'getMemento',
+    args: recentMintId !== null ? [BigInt(recentMintId)] : undefined,
+    query: { enabled: recentMintId !== null && !!contractAddress }
+  }) as { data: any[] | undefined; refetch: () => void };
+
   // Format time remaining
   const formatTimeRemaining = (seconds: bigint | undefined) => {
     if (!seconds) return 'Unknown';
@@ -65,6 +87,16 @@ function MintNFTInner() {
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
   };
+
+  // Handle successful transaction
+  useEffect(() => {
+    if (isConfirmed && userMementos && userMementos.length > 0) {
+      // Get the latest minted NFT ID (contract starts from 1)
+      const latestMintId = Number(userMementos[userMementos.length - 1]);
+      setRecentMintId(latestMintId);
+      setShowRevealSection(true);
+    }
+  }, [isConfirmed, userMementos]);
 
   useEffect(() => {
     setMounted(true);
@@ -97,6 +129,11 @@ function MintNFTInner() {
       return;
     }
 
+    if (!variations.trim()) {
+      alert('Please share what you\'re thinking about lately.');
+      return;
+    }
+
     // Build the hidden geological prompt (same as HTML version)
     let fullPrompt = `Horizontal striped patterns with irregular, wavy boundaries between each layer, resembling geological strata, rock formations, or sedimentary deposits. Each piece uses a cohesive color palette with ${colors} and the layers have organic, flowing edges that create a natural, earthy appearance like cross-sections of canyon walls or mineral deposits`;
     
@@ -118,6 +155,13 @@ function MintNFTInner() {
     } catch (err) {
       console.error('Error requesting memento:', err);
       alert('Error requesting memento. Please try again.');
+    }
+  };
+
+  const handleRevealNFT = async () => {
+    if (recentMintId !== null) {
+      await refetchRecentMemento();
+      await refetchUserMementos();
     }
   };
 
@@ -168,6 +212,114 @@ function MintNFTInner() {
           Share your feelings and thoughts to create a unique AI-generated geological NFT
         </p>
       </div>
+
+      {/* Success Message with Reveal Section */}
+      {isConfirmed && showRevealSection && (
+        <div className="card mb-8" style={{ 
+          border: '1px solid #4ade80', 
+          background: 'linear-gradient(135deg, rgba(74, 222, 128, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%)'
+        }}>
+          <div className="text-center">
+            <div className="text-4xl mb-4">✅</div>
+            <h3 className="text-2xl font-bold mb-4" style={{ color: '#4ade80' }}>
+              Payment Successful!
+            </h3>
+            <p className="text-lg mb-6" style={{ color: 'var(--text-secondary)' }}>
+              Your NFT is now being generated in our decentralized network
+            </p>
+            
+            <div className="bg-card p-6 rounded-lg mb-6" style={{ 
+              border: '1px solid rgba(0, 212, 255, 0.2)',
+              background: 'rgba(26, 26, 46, 0.8)'
+            }}>
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="text-2xl">🤖</div>
+                <div className="text-2xl">→</div>
+                <div className="text-2xl">🌐</div>
+                <div className="text-2xl">→</div>
+                <div className="text-2xl">🖼️</div>
+              </div>
+              
+              <h4 className="text-lg font-bold mb-3" style={{ color: 'var(--accent-primary)' }}>
+                How Your NFT is Created
+              </h4>
+              
+              <div className="space-y-2 text-sm text-left">
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400">●</span>
+                  <span>AI processes your prompt and generates unique artwork</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400">●</span>
+                  <span>Image is stored permanently on SWARM decentralized network</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400">●</span>
+                  <span>NFT metadata is updated on the blockchain</span>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 rounded-lg" style={{ 
+                background: 'rgba(250, 204, 21, 0.1)',
+                border: '1px solid rgba(250, 204, 21, 0.2)'
+              }}>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  ⏱️ <strong>Generation Time:</strong> This process typically takes 30-60 seconds
+                </p>
+              </div>
+            </div>
+
+            {recentMintId !== null && (
+              <div className="mb-6">
+                <div className="flex items-center justify-center gap-4 mb-4">
+                  <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                    Your NFT ID: <span className="font-bold" style={{ color: 'var(--accent-primary)' }}>#{recentMintId}</span>
+                  </div>
+                </div>
+
+                {recentMementoData && recentMementoData[7] ? (
+                  <div className="card p-4" style={{ background: 'rgba(74, 222, 128, 0.1)' }}>
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">🎉</div>
+                      <p className="text-lg font-bold" style={{ color: '#4ade80' }}>
+                        Your NFT is Ready!
+                      </p>
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        Your unique geological pattern has been generated and stored on the decentralized network
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="card p-4" style={{ background: 'rgba(250, 204, 21, 0.1)' }}>
+                    <div className="text-center">
+                      <div className="text-3xl mb-2">⏳</div>
+                      <p className="text-lg font-bold" style={{ color: '#facc15' }}>
+                        Generation in Progress...
+                      </p>
+                      <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                        Your NFT is being created. This usually takes 30-60 seconds.
+                      </p>
+                      
+                      <button
+                        onClick={handleRevealNFT}
+                        className="btn btn-secondary"
+                        style={{ 
+                          background: 'var(--gradient-button)',
+                          border: 'none',
+                          color: 'white'
+                        }}
+                      >
+                        <span>🔄</span>
+                        Check if Ready
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Minting Status */}
       <div className="card mb-8">
@@ -246,7 +398,7 @@ function MintNFTInner() {
               type="text" 
               id="colors" 
               className="form-input"
-              placeholder="e.g., feeling calm like ocean blues, or energetic like sunset oranges..."
+              placeholder="Deep ocean blues mixed with sunset oranges..."
               value={colors}
               onChange={(e) => setColors(e.target.value)}
               required
@@ -254,82 +406,85 @@ function MintNFTInner() {
             
             {/* Color Examples */}
             <div className="example-colors">
-              <span className="color-example" onClick={() => setColorExample('peaceful like soft blues and gentle grays')}>
-                Peaceful
-              </span>
-              <span className="color-example" onClick={() => setColorExample('energetic like bright oranges and vibrant yellows')}>
-                Energetic
-              </span>
-              <span className="color-example" onClick={() => setColorExample('nostalgic like warm browns and faded golds')}>
-                Nostalgic
-              </span>
-              <span className="color-example" onClick={() => setColorExample('dreamy like soft purples and misty pinks')}>
-                Dreamy
-              </span>
-              <span className="color-example" onClick={() => setColorExample('grounded like deep greens and earthy browns')}>
-                Grounded
-              </span>
+              <div className="text-sm font-semibold mb-2" style={{ color: 'var(--text-muted)' }}>
+                Popular feelings:
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  'Peaceful sage greens and soft lavenders',
+                  'Energetic bright yellows and fiery reds',
+                  'Nostalgic warm browns and golden hues',
+                  'Dreamy purples and midnight blues',
+                  'Grounded earth tones and forest greens'
+                ].map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    onClick={() => setColorExample(example)}
+                    className="color-example"
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Variations Input */}
           <div className="form-group">
             <label htmlFor="variations" className="form-label">
-              What are you thinking of lately or just some random thoughts? (Optional)
+              What are you thinking of lately or just some random thoughts?
             </label>
-            <input 
-              type="text" 
-              id="variations" 
-              className="form-input"
-              placeholder="Share your recent thoughts, dreams, or anything on your mind..."
+            <textarea
+              id="variations"
               value={variations}
               onChange={(e) => setVariations(e.target.value)}
+              placeholder="I've been thinking about ocean waves, the smell of rain, or that book I read last week..."
+              className="form-textarea"
+              rows={4}
+              required
             />
           </div>
 
           {/* Submit Button */}
-          <button 
-            type="submit" 
-            className="btn btn-primary btn-full"
-            disabled={isPending || isConfirming || !isMintingActive}
-          >
-            {isPending || isConfirming ? (
-              <>
-                <div className="spinner"></div>
-                {isPending ? 'Confirming Transaction...' : 'Processing...'}
-              </>
-            ) : !isMintingActive ? (
-              'Minting Period Ended'
-            ) : (
-              'Create My Personal Memento (6.66 FLOW)'
+          <div className="text-center">
+            <button
+              type="submit"
+              disabled={isPending || isConfirming || !isMintingActive}
+              className="btn btn-primary btn-full"
+              style={{ 
+                fontSize: '1.1rem',
+                padding: '1rem 2rem',
+                background: isPending || isConfirming 
+                  ? 'var(--text-muted)' 
+                  : 'var(--gradient-button)'
+              }}
+            >
+              {isPending && (
+                <div className="spinner" style={{ width: '20px', height: '20px' }}></div>
+              )}
+              {isConfirming && (
+                <div className="spinner" style={{ width: '20px', height: '20px' }}></div>
+              )}
+              {!isPending && !isConfirming && '🏔️'}
+              <span>
+                {isPending
+                  ? 'Preparing Transaction...'
+                  : isConfirming
+                  ? 'Confirming Payment...'
+                  : 'Create My Personal Memento (6.66 FLOW)'
+                }
+              </span>
+            </button>
+            
+            {!isMintingActive && (
+              <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>
+                Minting period has ended or maximum supply reached
+              </p>
             )}
-          </button>
+          </div>
         </form>
       </div>
-
-      {/* Success Message */}
-      {isConfirmed && (
-        <div className="status-message status-success mt-8">
-          <h3 className="text-xl font-bold mb-4">🎉 NFT Minted Successfully!</h3>
-          <p className="mb-4">Your geological pattern NFT has been created! Our AI is now generating your unique artwork.</p>
-          
-          <div className="card">
-            <h4 className="font-bold mb-3" style={{ color: 'var(--accent-primary)' }}>What happens next:</h4>
-            <ol className="space-y-2 text-sm">
-              <li>🤖 AI generates your geological pattern using DALL-E 3</li>
-              <li>🌐 Image is stored permanently on SWARM network</li>
-              <li>🔗 Your NFT metadata is updated with the final artwork</li>
-              <li>✅ You can view your completed NFT in your wallet</li>
-            </ol>
-          </div>
-          
-          <div className="mt-4 p-3 bg-black/30 rounded-lg">
-            <p className="text-sm font-mono break-all" style={{ color: 'var(--accent-primary)' }}>
-              Transaction: {hash}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Error Message */}
       {error && (
