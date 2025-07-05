@@ -21,7 +21,9 @@
     "verify": "node scripts/verify.js",
     "verify:contract": "npx hardhat verify --network flowTestnet",
     "backend:start": "node backend/index.js",
-    "backend:dev": "node --watch backend/index.js"
+    "backend:dev": "node --watch backend/index.js",
+    "backend:process-pending": "node backend/process-pending.js",
+    "backend:check-pending": "node backend/process-pending.js"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^0.15.12",

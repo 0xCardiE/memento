@@ -206,6 +206,109 @@ For production deployment:
 8. **Alerts** - Set up alerts for failed generations or service downtime
 9. **Backup** - Monitor SWARM batch utilization and remaining capacity
 
+## Pending NFT Processor
+
+A standalone script to process NFTs that were paid for but haven't been generated yet. This serves as a backup mechanism for the main event listener.
+
+### **Features**
+
+- 🔍 **Finds Pending NFTs**: Queries the contract for paid but ungenerated NFTs
+- 🎨 **Processes Missing NFTs**: Generates images for NFTs that were missed by the main service
+- 📊 **Detailed Reporting**: Shows processing progress and results
+- ⏰ **Cron Job Support**: Can be automated to run every 5 minutes
+- 🚀 **One-time Execution**: Can be run manually when needed
+
+### **Usage**
+
+**Manual Execution:**
+```bash
+# Run once to process all pending NFTs (from project root)
+npm run backend:process-pending
+
+# Alternative command
+npm run backend:check-pending
+
+# Or run directly
+node backend/process-pending.js
+```
+
+**Cron Job Setup:**
+```bash
+# Make the cron script executable
+chmod +x cron-process-pending.sh
+
+# Edit your crontab
+crontab -e
+
+# Add this line to run every 5 minutes
+*/5 * * * * /path/to/memento/backend/cron-process-pending.sh
+
+# Or run every hour
+0 * * * * /path/to/memento/backend/cron-process-pending.sh
+```
+
+### **Output Example**
+
+```
+🚀 Starting pending NFT processor...
+✅ Network connected: Chain ID 545
+📊 Latest block: 12345
+🔍 Checking for pending mementos...
+📊 Total mementos in contract: 50
+📋 Found 3 pending mementos to process
+🎯 Pending Token IDs: 47, 48, 49
+
+📍 Processing 1/3: Token ID 47
+🎨 Generating image with prompt: "Geological patterns with vibrant colors..."
+✅ Image generated successfully
+📥 Downloading image...
+🌐 Storing image on SWARM network
+✅ Image stored on SWARM: https://bzz.link/bzz/abc123...
+🔄 Updating NFT image URI for Token ID: 47
+✅ NFT image URI updated successfully
+
+📊 Processing Summary:
+✅ Successfully processed: 3
+❌ Failed: 0
+⏭️  Skipped: 0
+📋 Total attempted: 3
+```
+
+### **When to Use**
+
+- **After Service Restart**: Process any NFTs that were minted while the service was down
+- **Network Issues**: If the main service missed events due to network problems
+- **Manual Verification**: Periodic check to ensure all paid NFTs have been generated
+- **Deployment**: After deploying new backend code, run once to catch up
+- **Monitoring**: Regular automated checks every 5-10 minutes
+
+### **Cron Job Configuration**
+
+The script is designed to be cron-friendly:
+
+```bash
+# Every 5 minutes
+*/5 * * * * /path/to/memento/backend/cron-process-pending.sh
+
+# Every 10 minutes
+*/10 * * * * /path/to/memento/backend/cron-process-pending.sh
+
+# Every hour
+0 * * * * /path/to/memento/backend/cron-process-pending.sh
+
+# Every day at 2 AM
+0 2 * * * /path/to/memento/backend/cron-process-pending.sh
+```
+
+Logs are written to `/var/log/memento-pending-processor.log` by default.
+
+### **Smart Contract Integration**
+
+The script uses the same contract functions as the main service:
+- `getPendingMementos()`: Gets list of NFTs that need processing
+- `getMemento(tokenId)`: Gets the original prompt and metadata
+- `updateMementoUri(tokenId, imageUrl)`: Updates the NFT with the generated image
+
 ## Troubleshooting
 
 ### **Common Issues**
@@ -239,7 +342,20 @@ For production deployment:
      http://127.0.0.1:8545
    ```
 
+5. **Pending Processor Issues**
+   ```bash
+   # Test the pending processor manually
+   npm run backend:process-pending
+   
+   # Check cron job logs
+   tail -f /var/log/memento-pending-processor.log
+   
+   # Verify cron job is running
+   crontab -l | grep memento
+   ```
+
 ### **Logs Location**
 - PM2 logs: `~/.pm2/logs/`
 - Custom logs: `./logs/` (if using ecosystem.config.js)
-- Console output: `pm2 logs memento-ai-generator` 
+- Console output: `pm2 logs memento-ai-generator`
+- Pending processor logs: `/var/log/memento-pending-processor.log` 
