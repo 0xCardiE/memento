@@ -10,148 +10,179 @@ function HomePage() {
   return (
     <div className="min-h-screen bg-gradient">
       <div className="container py-8">
-        <header className="mb-8">
-          <div className="flex justify-between items-start header-responsive mb-8">
-            <div className="header-content">
-              <h1 className="text-4xl font-bold text-gray-800 mb-2">
-                🏔️ Memento Machina
-              </h1>
-              <p className="text-xl text-gray-600">
-                Create beautiful layered rock formation patterns as NFTs on the blockchain
-              </p>
+        {/* Header */}
+        <header className="flex justify-between items-center mb-12">
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold">
+              <span className="text-white">Memento</span>
+              <span style={{ color: 'var(--accent-primary)' }}>Machina</span>
+            </h1>
+          </div>
+          <ConnectButton />
+        </header>
+
+        {/* Hero Section */}
+        <section className="hero mb-16">
+          <div className="hero-title mb-4">
+            Super Rare
+          </div>
+          <div className="hero-subtitle mb-8">
+            Generate unique geological pattern NFTs with AI-powered artwork on Flow blockchain
+          </div>
+          
+          {/* Stats */}
+          <div className="stats mb-8">
+            <div className="stat-item">
+              <div className="stat-number">6.66</div>
+              <div className="stat-label">Mint Price (FLOW)</div>
             </div>
-            <div>
-              <ConnectButton />
+            <div className="stat-item">
+              <div className="stat-number">AI</div>
+              <div className="stat-label">Generated</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">∞</div>
+              <div className="stat-label">Possibilities</div>
             </div>
           </div>
-        </header>
+
+          {!isConnected && (
+            <div className="hero-cta">
+              <ConnectButton />
+            </div>
+          )}
+        </section>
 
         <main>
           {isConnected ? (
-            <div className="space-y-8">
+            <div className="space-y-12">
               {/* Latest Mints Section */}
-              <div className="max-w-4xl mx-auto">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Latest Mints</h2>
+              <section className="max-w-4xl mx-auto">
+                <h2 className="text-2xl font-bold mb-8 text-center">Latest Mints</h2>
                 <div className="grid md:grid-cols-3 gap-6">
-                  {/* Placeholder NFT 1 */}
-                  <div className="bg-white rounded-lg shadow-md p-4">
-                    <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                      <div className="text-gray-400 text-center">
-                        <div className="text-4xl mb-2">🏔️</div>
-                        <div className="text-sm">AI Generation Pending</div>
+                  {/* NFT Card 1 */}
+                  <div className="nft-card">
+                    <div className="nft-placeholder">
+                      <div className="nft-placeholder-content">
+                        <div className="nft-placeholder-icon">🏔️</div>
+                        <div className="nft-placeholder-text">AI Generation Pending</div>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                      <div className="h-4 bg-gray-400 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-400 rounded animate-pulse w-2/3"></div>
                     </div>
                   </div>
                   
-                  {/* Placeholder NFT 2 */}
-                  <div className="bg-white rounded-lg shadow-md p-4">
-                    <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                      <div className="text-gray-400 text-center">
-                        <div className="text-4xl mb-2">🏔️</div>
-                        <div className="text-sm">AI Generation Pending</div>
+                  {/* NFT Card 2 */}
+                  <div className="nft-card">
+                    <div className="nft-placeholder">
+                      <div className="nft-placeholder-content">
+                        <div className="nft-placeholder-icon">🏔️</div>
+                        <div className="nft-placeholder-text">AI Generation Pending</div>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                      <div className="h-4 bg-gray-400 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-400 rounded animate-pulse w-2/3"></div>
                     </div>
                   </div>
                   
-                  {/* Placeholder NFT 3 */}
-                  <div className="bg-white rounded-lg shadow-md p-4">
-                    <div className="aspect-square bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                      <div className="text-gray-400 text-center">
-                        <div className="text-4xl mb-2">🏔️</div>
-                        <div className="text-sm">AI Generation Pending</div>
+                  {/* NFT Card 3 */}
+                  <div className="nft-card">
+                    <div className="nft-placeholder">
+                      <div className="nft-placeholder-content">
+                        <div className="nft-placeholder-icon">🏔️</div>
+                        <div className="nft-placeholder-text">AI Generation Pending</div>
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <div className="h-4 bg-gray-200 rounded animate-pulse"></div>
-                      <div className="h-3 bg-gray-200 rounded animate-pulse w-2/3"></div>
+                      <div className="h-4 bg-gray-400 rounded animate-pulse"></div>
+                      <div className="h-3 bg-gray-400 rounded animate-pulse w-2/3"></div>
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
 
+              {/* Mint Section */}
               <MintNFT />
               
-              <div className="max-w-2xl mx-auto text-center">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">How it works</h2>
+              {/* How it works Section */}
+              <section className="max-w-4xl mx-auto">
+                <h2 className="text-2xl font-bold mb-8 text-center">How It Works</h2>
                 <div className="grid md:grid-cols-3 gap-6">
-                  <div className="card bg-white shadow">
-                    <div className="text-3xl mb-3">🎨</div>
-                    <h3 className="font-bold mb-2">Design</h3>
-                    <p className="text-gray-600">Choose colors and effects for your geological pattern</p>
+                  <div className="card text-center">
+                    <div className="text-4xl mb-4" style={{ color: 'var(--accent-primary)' }}>🎨</div>
+                    <h3 className="font-bold mb-3">Design</h3>
+                    <p>Choose colors and effects for your geological pattern using our AI prompt system</p>
                   </div>
-                  <div className="card bg-white shadow">
-                    <div className="text-3xl mb-3">💰</div>
-                    <h3 className="font-bold mb-2">Mint</h3>
-                    <p className="text-gray-600">Pay the mint fee to create your NFT</p>
+                  <div className="card text-center">
+                    <div className="text-4xl mb-4" style={{ color: 'var(--accent-primary)' }}>⚡</div>
+                    <h3 className="font-bold mb-3">Mint</h3>
+                    <p>Pay 6.66 FLOW to mint your NFT and trigger AI generation</p>
                   </div>
-                  <div className="card bg-white shadow">
-                    <div className="text-3xl mb-3">🏔️</div>
-                    <h3 className="font-bold mb-2">Own</h3>
-                    <p className="text-gray-600">Your geological pattern is now a unique NFT forever</p>
+                  <div className="card text-center">
+                    <div className="text-4xl mb-4" style={{ color: 'var(--accent-primary)' }}>🏔️</div>
+                    <h3 className="font-bold mb-3">Own</h3>
+                    <p>Your unique geological pattern NFT is generated and stored permanently</p>
                   </div>
                 </div>
-              </div>
+              </section>
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="text-6xl mb-6">🔒</div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Connect Your Wallet</h2>
-              <p className="text-gray-600 mb-8">
-                Connect your Web3 wallet to start minting your memories as NFTs
+              <div className="text-8xl mb-8 opacity-50">🔐</div>
+              <h2 className="text-3xl font-bold mb-4">Connect Your Wallet</h2>
+              <p className="text-xl mb-8 max-w-2xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
+                Connect your Web3 wallet to start creating unique geological pattern NFTs with AI-generated artwork
               </p>
+              <ConnectButton />
             </div>
           )}
         </main>
 
-        <footer className="mt-16 text-center text-gray-500">
-          <p className="mb-4">Built with</p>
-          <div className="flex justify-center items-center gap-4 flex-wrap">
+        {/* Footer */}
+        <footer className="footer">
+          <p className="mb-4" style={{ color: 'var(--text-muted)' }}>Built with cutting-edge technology</p>
+          <div className="footer-links">
             <a 
               href="https://flow.com" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 hover:text-blue-600 transition-colors"
+              className="footer-link"
             >
               <img 
                 src="/flow.png" 
                 alt="Flow" 
-                style={{ height: '20px' }}
+                style={{ height: '20px', filter: 'brightness(0) invert(1)' }}
               />
-              <span className="font-semibold">Flow</span>
+              <span className="font-semibold">Flow EVM</span>
             </a>
-            <span className="text-gray-400 font-bold">+</span>
+            <span className="footer-divider">+</span>
             <a 
               href="https://hardhat.org" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 hover:text-yellow-600 transition-colors"
+              className="footer-link"
             >
               <img 
                 src="/hardhat.png" 
                 alt="Hardhat" 
-                style={{ height: '20px' }}
+                style={{ height: '20px', filter: 'brightness(0) invert(1)' }}
               />
-              <span className="font-semibold">Hardhat 3</span>
+              <span className="font-semibold">Hardhat</span>
             </a>
-            <span className="text-gray-400 font-bold">+</span>
+            <span className="footer-divider">+</span>
             <a 
               href="https://www.ethswarm.org" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 hover:text-orange-600 transition-colors"
+              className="footer-link"
             >
               <img 
                 src="/swarm.jpg" 
                 alt="Swarm" 
-                style={{ height: '20px' }}
+                style={{ height: '20px', filter: 'brightness(0) invert(1)' }}
               />
               <span className="font-semibold">Swarm</span>
             </a>

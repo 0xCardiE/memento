@@ -72,10 +72,12 @@ export default function MintNFT() {
 
   if (!isConnected) {
     return (
-      <div className="container">
-        <div className="header">
-                  <h1>🏔️ Memento Machina</h1>
-        <p className="subtitle">Connect your wallet to mint geological patterns</p>
+      <div className="mint-container">
+        <div className="mint-header">
+          <h1 className="text-4xl font-bold mb-4">🏔️ Memento Machina</h1>
+          <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
+            Connect your wallet to mint geological patterns
+          </p>
         </div>
       </div>
     );
@@ -83,100 +85,139 @@ export default function MintNFT() {
 
   if (!contractAddress) {
     return (
-      <div className="container">
-        <div className="header">
-          <h1>🚫 Unsupported Network</h1>
-          <p className="subtitle">Please switch to Flow EVM Testnet or Mainnet</p>
+      <div className="mint-container">
+        <div className="mint-header">
+          <h1 className="text-4xl font-bold mb-4">🚫 Unsupported Network</h1>
+          <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
+            Please switch to Flow EVM Testnet or Mainnet
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container">
-      <div className="header">
-        <h1>🏔️ Memento Machina</h1>
-        <p className="subtitle">Create beautiful layered rock formation patterns</p>
+    <section className="max-w-4xl mx-auto">
+      <div className="mint-header">
+        <h2 className="text-3xl font-bold mb-4">Create Your NFT</h2>
+        <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
+          Design your unique geological pattern with AI
+        </p>
       </div>
 
-      <div className="explanation">
-        <h3>What you'll get:</h3>
-        <p><strong>Horizontal layered patterns</strong> that look like cross-sections of canyon walls, rock formations, or sedimentary deposits.</p>
-        <p><strong>Natural wavy boundaries</strong> between each layer, creating an organic, earthy appearance.</p>
-        <p><strong>Cohesive color palettes</strong> that work together harmoniously.</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="form-section">
-        <div className="input-group">
-          <label htmlFor="colors">Color Palette Description</label>
-          <input 
-            type="text" 
-            id="colors" 
-            className="main-input"
-            placeholder="e.g., warm earth tones with deep reds and browns..."
-            value={colors}
-            onChange={(e) => setColors(e.target.value)}
-            required
-          />
-          <div className="example-colors">
-            <span className="color-example" onClick={() => setColorExample('warm earth tones with deep reds and browns')}>Earth & Red</span>
-            <span className="color-example" onClick={() => setColorExample('cool blues and grays like ocean sediments')}>Ocean Blues</span>
-            <span className="color-example" onClick={() => setColorExample('desert colors with oranges, tans, and sandy yellows')}>Desert Tones</span>
-            <span className="color-example" onClick={() => setColorExample('forest colors with deep greens and browns')}>Forest Greens</span>
-            <span className="color-example" onClick={() => setColorExample('sunset colors with purples, oranges, and pinks')}>Sunset</span>
+      <div className="mint-form">
+        {/* Explanation */}
+        <div className="card mb-8">
+          <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--accent-primary)' }}>
+            What You'll Get
+          </h3>
+          <div className="space-y-3" style={{ color: 'var(--text-secondary)' }}>
+            <p><strong>Horizontal layered patterns</strong> that look like cross-sections of canyon walls, rock formations, or sedimentary deposits.</p>
+            <p><strong>Natural wavy boundaries</strong> between each layer, creating an organic, earthy appearance.</p>
+            <p><strong>Cohesive color palettes</strong> that work together harmoniously.</p>
           </div>
-          
-          <input 
-            type="text" 
-            id="variations" 
-            className="variations-input"
-            placeholder="Optional: Add special effects, textures, or modifications..."
-            value={variations}
-            onChange={(e) => setVariations(e.target.value)}
-          />
         </div>
 
-        <div className="generate-section">
-          <button type="submit" disabled={isPending || isConfirming}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Color Palette Input */}
+          <div className="form-group">
+            <label htmlFor="colors" className="form-label">
+              Color Palette Description
+            </label>
+            <input 
+              type="text" 
+              id="colors" 
+              className="form-input"
+              placeholder="e.g., warm earth tones with deep reds and browns..."
+              value={colors}
+              onChange={(e) => setColors(e.target.value)}
+              required
+            />
+            
+            {/* Color Examples */}
+            <div className="example-colors">
+              <span className="color-example" onClick={() => setColorExample('warm earth tones with deep reds and browns')}>
+                Earth & Red
+              </span>
+              <span className="color-example" onClick={() => setColorExample('cool blues and grays like ocean sediments')}>
+                Ocean Blues
+              </span>
+              <span className="color-example" onClick={() => setColorExample('desert colors with oranges, tans, and sandy yellows')}>
+                Desert Tones
+              </span>
+              <span className="color-example" onClick={() => setColorExample('forest colors with deep greens and browns')}>
+                Forest Greens
+              </span>
+              <span className="color-example" onClick={() => setColorExample('sunset colors with purples, oranges, and pinks')}>
+                Sunset
+              </span>
+            </div>
+          </div>
+
+          {/* Variations Input */}
+          <div className="form-group">
+            <label htmlFor="variations" className="form-label">
+              Special Effects (Optional)
+            </label>
+            <input 
+              type="text" 
+              id="variations" 
+              className="form-input"
+              placeholder="Add special effects, textures, or modifications..."
+              value={variations}
+              onChange={(e) => setVariations(e.target.value)}
+            />
+          </div>
+
+          {/* Submit Button */}
+          <button 
+            type="submit" 
+            className="btn btn-primary btn-full"
+            disabled={isPending || isConfirming}
+          >
             {isPending || isConfirming ? (
               <>
                 <div className="spinner"></div>
-                {isPending ? 'Confirming...' : 'Processing...'}
+                {isPending ? 'Confirming Transaction...' : 'Processing...'}
               </>
             ) : (
               'Generate Geological Pattern NFT (6.66 FLOW)'
             )}
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
 
       {/* Success Message */}
       {isConfirmed && (
-        <div className="success-message">
-          <h3>🎉 NFT Request Submitted Successfully!</h3>
-          <p>Your geological pattern NFT has been minted! Our AI is now generating your unique artwork.</p>
-          <div className="process-steps">
-            <h4>What happens next:</h4>
-            <ol>
+        <div className="status-message status-success mt-8">
+          <h3 className="text-xl font-bold mb-4">🎉 NFT Minted Successfully!</h3>
+          <p className="mb-4">Your geological pattern NFT has been created! Our AI is now generating your unique artwork.</p>
+          
+          <div className="card">
+            <h4 className="font-bold mb-3" style={{ color: 'var(--accent-primary)' }}>What happens next:</h4>
+            <ol className="space-y-2 text-sm">
               <li>🤖 AI generates your geological pattern using DALL-E 3</li>
               <li>🌐 Image is stored permanently on SWARM network</li>
               <li>🔗 Your NFT metadata is updated with the final artwork</li>
               <li>✅ You can view your completed NFT in your wallet</li>
             </ol>
           </div>
-          <p className="transaction-hash">
-            <strong>Transaction Hash:</strong> {hash}
-          </p>
+          
+          <div className="mt-4 p-3 bg-black/30 rounded-lg">
+            <p className="text-sm font-mono break-all" style={{ color: 'var(--accent-primary)' }}>
+              Transaction: {hash}
+            </p>
+          </div>
         </div>
       )}
 
       {/* Error Message */}
       {error && (
-        <div className="error-message">
-          <h3>Transaction Failed</h3>
-          <p>{error.message}</p>
+        <div className="status-message status-error mt-8">
+          <h3 className="text-xl font-bold mb-2">Transaction Failed</h3>
+          <p className="text-sm">{error.message}</p>
         </div>
       )}
-    </div>
+    </section>
   );
 } 

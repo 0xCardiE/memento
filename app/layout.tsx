@@ -4,8 +4,12 @@ import './globals.css'
 import Web3Provider from '@/app/components/Web3Provider'
 
 export const metadata: Metadata = {
-  title: 'Memento Machina - Geological Pattern NFT Generator',
-  description: 'Create beautiful layered rock formation patterns as NFTs on Flow blockchain with AI-generated artwork stored on Swarm',
+  title: 'Memento Machina - AI-Powered Geological Pattern NFTs',
+  description: 'Create unique geological pattern NFTs with AI-generated artwork on Flow blockchain. Mint beautiful layered rock formations stored permanently on Swarm network.',
+  keywords: ['NFT', 'AI', 'Flow', 'Geological', 'Pattern', 'Blockchain', 'Swarm'],
+  authors: [{ name: 'Memento Machina' }],
+  viewport: 'width=device-width, initial-scale=1',
+  themeColor: '#00d4ff',
 }
 
 export default function RootLayout({
@@ -15,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body suppressHydrationWarning={true}>
+      <body className="bg-gradient" suppressHydrationWarning={true}>
         <Web3Provider>
           {children}
         </Web3Provider>

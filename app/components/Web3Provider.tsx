@@ -19,9 +19,9 @@ export default function Web3Provider({ children }: { children: React.ReactNode }
       <div className="min-h-screen bg-gradient">
         <div className="container py-8">
           <div className="text-center py-16">
-            <div className="text-6xl mb-6">⚡</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Loading...</h2>
-            <p className="text-gray-600">Initializing Web3 connection</p>
+            <div className="text-6xl mb-6 opacity-50">⚡</div>
+            <h2 className="text-2xl font-bold mb-4">Loading...</h2>
+            <p style={{ color: 'var(--text-secondary)' }}>Initializing Web3 connection</p>
           </div>
         </div>
       </div>
