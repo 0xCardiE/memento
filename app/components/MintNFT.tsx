@@ -209,7 +209,7 @@ function MintNFTInner() {
       <div className="mint-header">
         <h2 className="text-3xl font-bold mb-4">Create Your Personal Memento</h2>
         <p className="text-xl" style={{ color: 'var(--text-secondary)' }}>
-          Share your feelings and thoughts to create a unique AI-generated geological NFT
+          Add your personal touch to our shared geological foundation. Your thoughts become part of this collaborative time capsule of 2025 AI art.
         </p>
       </div>
 
@@ -379,12 +379,12 @@ function MintNFTInner() {
         {/* Explanation */}
         <div className="card mb-8">
           <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--accent-primary)' }}>
-            Your Personal Geological Portrait
+            Collaborative Art That Endures
           </h3>
           <div className="space-y-3" style={{ color: 'var(--text-secondary)' }}>
-            <p><strong>Emotional landscapes</strong> - AI transforms your feelings into horizontal layered patterns that reflect your inner state.</p>
-            <p><strong>Thought-inspired textures</strong> - Your random thoughts and reflections influence the natural wavy boundaries between layers.</p>
-            <p><strong>Personal color story</strong> - The colors you choose to represent your mood create a unique geological time capsule.</p>
+            <p><strong>Shared foundation</strong> - Every piece starts from the same geological pattern prompt, creating unity across the collection.</p>
+            <p><strong>Your personal layer</strong> - Your feelings and thoughts are woven into the shared canvas, making each NFT uniquely yours.</p>
+            <p><strong>Built to last</strong> - Stored on Swarm's decentralized network with DeFi-backed preservation, this Vol 1 collection is designed to endure.</p>
           </div>
         </div>
 
@@ -472,7 +472,7 @@ function MintNFTInner() {
                   ? 'Preparing Transaction...'
                   : isConfirming
                   ? 'Confirming Payment...'
-                  : 'Create My Personal Memento (6.66 FLOW)'
+                  : 'Add My Layer to Vol 1 (6.66 FLOW)'
                 }
               </span>
             </button>

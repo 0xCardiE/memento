@@ -28,7 +28,7 @@ function HomePage() {
             Super Rare - Vol 1.
           </div>
           <div className="hero-subtitle mb-8">
-            Generate unique geological pattern NFTs with AI-powered artwork on Flow blockchain
+            A collaborative time capsule capturing AI art in 2025. Add your thoughts to shared geological patterns, stored forever on decentralized networks.
           </div>
           
           {/* Stats */}
@@ -42,8 +42,8 @@ function HomePage() {
               <div className="stat-label">Generated</div>
             </div>
             <div className="stat-item">
-              <div className="stat-number">∞</div>
-              <div className="stat-label">Possibilities</div>
+              <div className="stat-number">Vol 1</div>
+              <div className="stat-label">Time Capsule</div>
             </div>
           </div>
 
