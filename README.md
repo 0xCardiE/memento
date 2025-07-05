@@ -227,6 +227,39 @@ To ensure the NFT artwork remains permanently accessible, we've implemented a **
 - **Fail-Safe**: Emergency withdrawal for contract owner
 - **Cost-Effective**: Uses cheap Gnosis Chain gas fees
 
+### Smart Contract Functions
+
+The `SwarmVault.sol` contract provides comprehensive functionality for managing postage stamp funding:
+
+#### **Core Functions**
+- `contribute()` - Accept xDAI contributions from any address
+- `topUpPostageStamp()` - Manual postage stamp top-up (public)
+- `topUpPostageStampCustom(amount)` - Custom amount top-up (owner only)
+- `getVaultStats()` - Get comprehensive vault statistics
+
+#### **Management Functions** (Owner Only)
+- `updateAutoTopUpThreshold(newThreshold)` - Adjust automatic top-up trigger
+- `updateTopUpAmount(newAmount)` - Change top-up amount
+- `emergencyWithdraw(amount)` - Emergency fund withdrawal
+
+#### **View Functions**
+- `getPostageStampBalance()` - Check current postage stamp balance
+- `getVaultBalance()` - Check vault contract balance
+- `getContributorCount()` - Get total number of contributors
+- `contributorAmounts(address)` - Check individual contribution amounts
+
+#### **Events for Transparency**
+- `ContributionReceived` - Logs all contributions with amount and timestamp
+- `PostageStampTopUp` - Logs all top-ups with new balance
+- `ThresholdUpdated` / `TopUpAmountUpdated` - Configuration changes
+- `EmergencyWithdrawal` - Emergency fund movements
+
+#### **Safety Features**
+- **ReentrancyGuard**: Prevents reentrancy attacks
+- **Ownable**: Secure ownership management
+- **Error Handling**: Graceful handling of postage stamp balance checks
+- **Input Validation**: All functions validate inputs and balances
+
 ### Bridge Setup
 
 To fund the vault from Flow EVM:
