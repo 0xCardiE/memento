@@ -208,7 +208,7 @@ async function storeImageOnSwarm(imageBuffer, tokenId) {
   }
 }
 
-// Update NFT with image URI (simplified - no JSON metadata generation/storage)
+// Update NFT with image URI
 async function updateNFTImageUri(tokenId, imageUrl) {
   try {
     console.log(`🔄 Updating NFT image URI for Token ID: ${tokenId}`);

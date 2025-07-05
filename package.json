@@ -23,7 +23,9 @@
     "backend:start": "node backend/index.js",
     "backend:dev": "node --watch backend/index.js",
     "backend:process-pending": "node backend/process-pending.js",
-    "backend:check-pending": "node backend/process-pending.js"
+    "backend:check-pending": "node backend/process-pending.js",
+    "swarm-vault:deploy": "node scripts/deploy-swarm-vault.js",
+    "swarm-vault:compile": "npx hardhat compile contracts/SwarmVault.sol"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^0.15.12",

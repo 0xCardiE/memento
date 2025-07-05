@@ -24,6 +24,13 @@ const config = {
       accounts: process.env.HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY ? [process.env.HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY] : [],
       chainId: 747,
     },
+    
+    // Gnosis Chain (for SwarmVault deployment)
+    gnosis: {
+      url: "https://rpc.gnosischain.com",
+      accounts: process.env.HARDHAT_VAR_GNOSIS_PRIVATE_KEY ? [process.env.HARDHAT_VAR_GNOSIS_PRIVATE_KEY] : [],
+      chainId: 100,
+    },
   },
   etherscan: {
     apiKey: {

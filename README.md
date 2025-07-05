@@ -39,20 +39,46 @@ This project includes:
 - **Event-Driven Processing**: Automated backend processes NFT generation requests
 - **Multi-Network Support**: Works on both Flow EVM testnet and mainnet
 - **Real-time Updates**: NFT URIs automatically updated with final artwork URLs
+- **Permanent Storage**: Swarm Vault on Gnosis Chain ensures long-term accessibility
+- **Community Funding**: Public contributions extend storage duration
+- **Transparent Operations**: All transactions and contributions visible on-chain
+
+## 💎 Collection Details
+
+### Pricing & Supply
+- **Collection Size**: 1,000 unique NFTs maximum
+- **Early Bird Price**: 3.33 FLOW (first 200 mints)
+- **Regular Price**: 6.66 FLOW (mints 201-1000)
+- **Minting Duration**: 7 days from contract deployment
+- **Blockchain**: Flow EVM (Testnet: 545, Mainnet: 747)
+
+### Artwork Characteristics
+- **Style**: Geological strata patterns with irregular, wavy boundaries
+- **AI Model**: OpenAI DALL-E 3 (1024x1024 resolution)
+- **Personalization**: User's color palette and thoughts influence the generation
+- **Base Theme**: Sedimentary rock formations, canyon walls, mineral deposits
+- **Uniqueness**: Each NFT is generated from user's personal input
+
+### Technical Specifications
+- **Standard**: ERC-721 (Non-Fungible Token)
+- **Metadata**: Stored on Swarm decentralized network
+- **Images**: Permanent storage via Swarm postage stamp system
+- **Smart Contract**: Verified on Flow EVM block explorer
+- **Backend**: Node.js service with real-time event processing
 
 ## 🏗️ System Architecture
 
-The Memento Machina platform consists of **four main components** that work together to create AI-generated NFTs:
+The Memento Machina platform consists of **five main components** that work together to create AI-generated NFTs with permanent storage:
 
 ### Component Overview
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│                 │    │                 │    │                 │    │                 │
-│   Frontend      │    │  Smart Contract │    │  Backend Service│    │  SWARM Network  │
-│   (Next.js)     │    │   (Flow EVM)    │    │   (Node.js)     │    │ (Decentralized) │
-│                 │    │                 │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│                 │    │                 │    │                 │    │                 │    │                 │
+│   Frontend      │    │  Smart Contract │    │  Backend Service│    │  SWARM Network  │    │  Swarm Vault    │
+│   (Next.js)     │    │   (Flow EVM)    │    │   (Node.js)     │    │ (Decentralized) │    │ (Gnosis Chain)  │
+│                 │    │                 │    │                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ### Data Flow
@@ -101,6 +127,17 @@ User → Frontend → Smart Contract → Event Emission
   - **NOT WITH**: Frontend (no direct interaction)
 - **Storage**: Permanent, content-addressed storage
 - **Access**: Via SWARM gateways or local SWARM nodes
+
+#### 🏦 **Swarm Vault (Gnosis Chain)**
+- **Role**: Permanent funding mechanism for Swarm storage
+- **Functions**:
+  - Manages postage stamp funding to ensure long-term storage
+  - Accepts contributions from Flow EVM bridge or direct deposits
+  - Automatically tops up postage stamp when balance gets low
+  - Allows public contributions to extend storage duration
+  - Transparent tracking of all contributions and expenditures
+- **Contract**: `SwarmVault.sol` deployed on Gnosis Chain
+- **Target**: Swarm PostageStamp contract at `0x45a1502382541Cd610CC9068e88727426b696293`
 
 ### Backend Service Details
 
@@ -152,6 +189,52 @@ localhost:3000 (Frontend) → Flow Testnet (Smart Contract) ← localhost:3001 (
 ```
 
 The backend service runs **continuously** and processes NFT generation requests as they come in from the blockchain events.
+
+## 🏦 Swarm Vault - Permanent Storage Funding
+
+To ensure the NFT artwork remains permanently accessible, we've implemented a **Swarm Vault** system on Gnosis Chain:
+
+### How It Works
+
+1. **Funding Sources**:
+   - Bridge funds from Flow EVM to Gnosis Chain
+   - Direct xDAI deposits by community members
+   - Automatic contributions from NFT sales (future feature)
+
+2. **Automatic Management**:
+   - Monitors postage stamp balance automatically
+   - Tops up when balance falls below threshold (0.1 xDAI)
+   - Extends storage duration to ensure permanent access
+
+3. **Community Contributions**:
+   - Anyone can contribute xDAI to extend storage
+   - Transparent tracking of all contributions
+   - Public dashboard showing vault statistics
+
+### Technical Details
+
+- **Contract**: `SwarmVault.sol` deployed on Gnosis Chain
+- **Postage Stamp**: `0x45a1502382541Cd610CC9068e88727426b696293`
+- **Batch ID**: `c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278`
+- **Auto Top-up**: 0.5 xDAI when balance < 0.1 xDAI
+- **Transparency**: All contributions and expenditures logged on-chain
+
+### Key Features
+
+- **Automated**: No manual intervention required
+- **Transparent**: All transactions visible on Gnosis Chain
+- **Community-Driven**: Anyone can contribute to extend storage
+- **Fail-Safe**: Emergency withdrawal for contract owner
+- **Cost-Effective**: Uses cheap Gnosis Chain gas fees
+
+### Bridge Setup
+
+To fund the vault from Flow EVM:
+1. Use Flow <-> Gnosis bridge (when available)
+2. Or manually bridge Flow -> Ethereum -> Gnosis
+3. Send xDAI directly to the SwarmVault contract
+
+This system ensures that all Memento Machina NFT artwork will remain permanently accessible, creating a true time capsule that can survive for decades.
 
 ## Setup
 
