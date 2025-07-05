@@ -198,7 +198,7 @@ async function storeImageOnSwarm(imageBuffer, tokenId) {
     );
 
     const swarmHash = response.data.reference;
-    const bzzUrl = `https://bzz.link/bzz//bzz/${swarmHash}`;
+    const bzzUrl = `https://bzz.link/bzz/${swarmHash}`;
     
     console.log(`✅ Image stored on SWARM: ${bzzUrl}`);
     return bzzUrl;
@@ -251,11 +251,12 @@ async function updateNFTMetadata(tokenId, title, content, imageUrl) {
     
     console.log(`✅ Metadata stored on SWARM: ${metadataUrl}`);
     
-    // Update NFT URI in contract
-    const tx = await contract.updateMementoUri(tokenId, metadataUrl);
+    // Update NFT URI in contract with IMAGE URL (not metadata URL)
+    console.log(`🔄 Updating smart contract with image URL: ${imageUrl}`);
+    const tx = await contract.updateMementoUri(tokenId, imageUrl);
     await tx.wait();
     
-    console.log(`✅ NFT metadata updated successfully. Transaction: ${tx.hash}`);
+    console.log(`✅ NFT image URI updated successfully in smart contract. Transaction: ${tx.hash}`);
     
     return metadataUrl;
   } catch (error) {
@@ -285,8 +286,9 @@ async function processMementoRequest(tokenId, title, content, aiPrompt) {
     const metadataUrl = await updateNFTMetadata(tokenId, title, content, bzzUrl);
     
     console.log(`✅ Memento processing completed successfully!`);
-    console.log(`🖼️  Image URL: ${bzzUrl}`);
-    console.log(`📄 Metadata URL: ${metadataUrl}`);
+    console.log(`🖼️  Image URL (stored in contract): ${bzzUrl}`);
+    console.log(`📄 Metadata URL (for reference): ${metadataUrl}`);
+    console.log(`🎯 Smart contract now points directly to image, not metadata`);
     
     return { imageUrl: bzzUrl, metadataUrl };
   } catch (error) {
