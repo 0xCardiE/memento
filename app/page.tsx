@@ -10,6 +10,33 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient">
+      {/* Futuristic Background Effects */}
+      <div className="particles">
+        <div className="particle"></div>
+        <div className="particle"></div>
+        <div className="particle"></div>
+        <div className="particle"></div>
+        <div className="particle"></div>
+        <div className="particle"></div>
+        <div className="particle"></div>
+        <div className="particle"></div>
+        <div className="particle"></div>
+      </div>
+      
+      <div className="tech-nodes">
+        <div className="tech-node"></div>
+        <div className="tech-node"></div>
+        <div className="tech-node"></div>
+        <div className="tech-node"></div>
+        <div className="tech-node"></div>
+      </div>
+      
+      <div className="connection-lines">
+        <div className="connection-line"></div>
+        <div className="connection-line"></div>
+        <div className="connection-line"></div>
+      </div>
+      
       <div className="container py-8">
         {/* Header */}
         <header className="flex justify-between items-center mb-12">
