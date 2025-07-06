@@ -21,7 +21,9 @@ contract MementoVol1 is ERC721, Ownable {
     
     uint256 public totalMementos;
     uint256 public nextTokenId;
-    uint256 public generationPrice = 6.66 ether; // 6.66 FLOW
+    uint256 public constant REGULAR_PRICE = 6.66 ether; // 6.66 FLOW
+    uint256 public constant EARLY_BIRD_PRICE = 3.33 ether; // 3.33 FLOW
+    uint256 public constant EARLY_BIRD_LIMIT = 200; // First 200 mints at half price
     uint256 public constant MAX_SUPPLY = 1000; // Maximum 1000 NFTs
     uint256 public immutable deploymentTimestamp; // Contract deployment time
     uint256 public constant MINTING_DURATION = 7 days; // 7-day minting window
@@ -49,7 +51,7 @@ contract MementoVol1 is ERC721, Ownable {
         _;
     }
 
-    constructor() ERC721("Memento Machina", "MEMO") Ownable(msg.sender) {
+    constructor() ERC721("Shared Sediments", "SEDIMENTS") Ownable(msg.sender) {
         nextTokenId = 1; // Start NFT numbering from 1
         totalMementos = 0;
         deploymentTimestamp = block.timestamp; // Record deployment time for minting deadline
@@ -58,12 +60,21 @@ contract MementoVol1 is ERC721, Ownable {
     /**
      * @dev Step 1: User pays and submits prompt - emits event for backend processing
      */
+    function getCurrentPrice() public view returns (uint256) {
+        if (totalMementos < EARLY_BIRD_LIMIT) {
+            return EARLY_BIRD_PRICE;
+        } else {
+            return REGULAR_PRICE;
+        }
+    }
+
     function requestMemento(
         string memory _title,
         string memory _content,
         string memory _aiPrompt
     ) external payable returns (uint256) {
-        require(msg.value >= generationPrice, "Insufficient payment");
+        uint256 currentPrice = getCurrentPrice();
+        require(msg.value >= currentPrice, "Insufficient payment");
         require(bytes(_title).length > 0, "Title cannot be empty");
         require(bytes(_content).length > 0, "Content cannot be empty");
         require(bytes(_aiPrompt).length > 0, "AI prompt cannot be empty");
@@ -200,9 +211,7 @@ contract MementoVol1 is ERC721, Ownable {
         return MAX_SUPPLY - totalMementos;
     }
 
-    function setGenerationPrice(uint256 _newPrice) external onlyOwner {
-        generationPrice = _newPrice;
-    }
+
 
     function setPlaceholderImageUri(string memory _newPlaceholderUri) external onlyOwner {
         placeholderImageUri = _newPlaceholderUri;
@@ -219,19 +228,23 @@ contract MementoVol1 is ERC721, Ownable {
     function tokenURI(uint256 _tokenId) public view override onlyTokenExists(_tokenId) returns (string memory) {
         Memento memory memento = mementos[_tokenId];
         
+        // Name: "Shared Sediments #[Token ID]"
+        string memory name = string(abi.encodePacked("Shared Sediments #", _uint256ToString(_tokenId)));
+        
+        // Description: User's input only (title contains user's colors + thoughts)
         string memory description = memento.isGenerated 
-            ? memento.content 
-            : string(abi.encodePacked(memento.content, " [AI IMAGE PENDING]"));
+            ? memento.title 
+            : string(abi.encodePacked(memento.title, " [AI generation pending]"));
         
         return string(abi.encodePacked(
-            '{"name":"', memento.title, 
+            '{"name":"', name, 
             '","description":"', description,
             '","image":"', memento.imageUri,
             '","attributes":[',
+                '{"trait_type":"Collection","value":"Shared Sediments"},',
+                '{"trait_type":"Artist","value":"Space Pony"},',
                 '{"trait_type":"Creator","value":"', _addressToString(memento.creator), '"},',
-                '{"trait_type":"Timestamp","value":"', _uint256ToString(memento.timestamp), '"},',
-                '{"trait_type":"Generated","value":"', memento.isGenerated ? "true" : "false", '"},',
-                '{"trait_type":"AI Prompt","value":"', memento.aiPrompt, '"}',
+                '{"trait_type":"Timestamp","value":"', _uint256ToString(memento.timestamp), '"}',
             ']}'
         ));
     }
