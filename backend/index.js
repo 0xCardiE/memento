@@ -17,7 +17,7 @@ dotenv.config({ path: envPath });
 const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const SWARM_GATEWAY = process.env.SWARM_GATEWAY || 'https://gateway.ethswarm.org';
-const SWARM_BATCH_ID = process.env.SWARM_BATCH_ID || 'c0f65f207052a4d1f338fd5fd3e6452734f4e9ebfb6ecf26127e8bebb47d5278';
+const SWARM_BATCH_ID = process.env.SWARM_BATCH_ID || '8762f2cf5a93e178aca2c0d6805c8b5259563ca7e341027dece39fe7c18fcae5';
 const NETWORK = process.env.NETWORK || 'testnet';
 
 // Debug environment variables (without sensitive data)
