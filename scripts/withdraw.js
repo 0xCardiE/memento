@@ -4,53 +4,32 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import dotenv from 'dotenv';
 
-// Load environment variables
-dotenv.config();
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Load environment variables from root .env file
+const rootDir = join(__dirname, '..');
+dotenv.config({ path: join(rootDir, '.env') });
+
 // Network configurations
 const NETWORKS = {
-  flowTestnet: {
+  testnet: {
     name: "Flow EVM Testnet",
     url: "https://testnet.evm.nodes.onflow.org",
     chainId: 545,
     privateKeyEnv: "HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY",
+    contractAddressEnv: "CONTRACT_ADDRESS_TESTNET",
     currency: "FLOW",
     explorer: "https://evm-testnet.flowscan.io"
   },
-  flowMainnet: {
+  mainnet: {
     name: "Flow EVM Mainnet", 
     url: "https://mainnet.evm.nodes.onflow.org",
     chainId: 747,
     privateKeyEnv: "HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY",
+    contractAddressEnv: "CONTRACT_ADDRESS_MAINNET",
     currency: "FLOW",
     explorer: "https://evm.flowscan.io"
-  },
-  gnosis: {
-    name: "Gnosis Chain",
-    url: "https://rpc.gnosischain.com",
-    chainId: 100,
-    privateKeyEnv: "HARDHAT_VAR_GNOSIS_PRIVATE_KEY",
-    currency: "xDAI",
-    explorer: "https://gnosisscan.io"
-  }
-};
-
-// Contract configurations
-const CONTRACTS = {
-  mementoVol1: {
-    name: "MementoVol1",
-    artifactPath: "contracts/MementoVol1.sol/MementoVol1.json",
-    withdrawFunction: "withdraw", // No parameters - withdraws all
-    networks: ["flowTestnet", "flowMainnet"]
-  },
-  swarmVault: {
-    name: "SwarmVault", 
-    artifactPath: "contracts/SwarmVault.sol/SwarmVault.json",
-    withdrawFunction: "emergencyWithdraw", // Takes amount parameter (0 = all)
-    networks: ["gnosis"]
   }
 };
 
@@ -60,56 +39,54 @@ async function main() {
   
   // Parse command line arguments
   const args = process.argv.slice(2);
-  if (args.length === 0) {
-    showUsage();
-    return;
+  let network = "mainnet"; // Default to mainnet
+  
+  if (args.length > 0) {
+    network = args[0].toLowerCase();
   }
   
-  const contractName = args[0];
-  const network = args[1];
-  const contractAddress = args[2];
-  const amount = args[3]; // Optional - for SwarmVault only
-  
-  // Validate inputs
-  if (!CONTRACTS[contractName]) {
-    console.error(`❌ Invalid contract name. Available: ${Object.keys(CONTRACTS).join(', ')}`);
-    return;
-  }
-  
+  // Validate network
   if (!NETWORKS[network]) {
-    console.error(`❌ Invalid network. Available: ${Object.keys(NETWORKS).join(', ')}`);
+    console.error(`❌ Invalid network: ${network}`);
+    console.error(`✅ Available networks: ${Object.keys(NETWORKS).join(', ')}`);
+    console.error(`💡 Usage: npm run withdraw [testnet|mainnet]`);
+    console.error(`📝 Default: mainnet`);
     return;
   }
   
-  if (!contractAddress || !ethers.isAddress(contractAddress)) {
+  await withdrawFromMementoContract(network);
+}
+
+async function withdrawFromMementoContract(networkName) {
+  const networkConfig = NETWORKS[networkName];
+  
+  console.log(`🔄 Withdrawing from MementoVol1 on ${networkConfig.name}`);
+  console.log(`💱 Currency: ${networkConfig.currency}`);
+  
+  // Get private key from environment
+  const privateKey = process.env[networkConfig.privateKeyEnv];
+  if (!privateKey || privateKey.includes('your_') || privateKey.includes('_here')) {
+    console.error(`❌ Missing or invalid private key environment variable: ${networkConfig.privateKeyEnv}`);
+    console.error(`💡 Edit .env file and set: ${networkConfig.privateKeyEnv}="your_actual_private_key"`);
+    console.error(`📝 Current value: ${privateKey ? privateKey.substring(0, 10) + '...' : 'undefined'}`);
+    return;
+  }
+  
+  // Get contract address from environment
+  const contractAddress = process.env[networkConfig.contractAddressEnv];
+  if (!contractAddress || contractAddress.includes('your_') || contractAddress.includes('_here')) {
+    console.error(`❌ Missing or invalid contract address environment variable: ${networkConfig.contractAddressEnv}`);
+    console.error(`💡 Edit .env file and set: ${networkConfig.contractAddressEnv}="your_actual_contract_address"`);
+    console.error(`📝 Current value: ${contractAddress || 'undefined'}`);
+    return;
+  }
+  
+  if (!ethers.isAddress(contractAddress)) {
     console.error(`❌ Invalid contract address: ${contractAddress}`);
     return;
   }
   
-  // Check if contract supports this network
-  const contractConfig = CONTRACTS[contractName];
-  if (!contractConfig.networks.includes(network)) {
-    console.error(`❌ ${contractConfig.name} is not deployed on ${network}`);
-    console.error(`✅ Available networks for ${contractConfig.name}: ${contractConfig.networks.join(', ')}`);
-    return;
-  }
-  
-  await withdrawFromContract(contractName, network, contractAddress, amount);
-}
-
-async function withdrawFromContract(contractName, networkName, contractAddress, amount) {
-  const contractConfig = CONTRACTS[contractName];
-  const networkConfig = NETWORKS[networkName];
-  
-  console.log(`🔄 Withdrawing from ${contractConfig.name} on ${networkConfig.name}`);
   console.log(`📍 Contract: ${contractAddress}`);
-  console.log(`💱 Currency: ${networkConfig.currency}`);
-  
-  // Get private key
-  const privateKey = process.env[networkConfig.privateKeyEnv];
-  if (!privateKey) {
-    throw new Error(`❌ ${networkConfig.privateKeyEnv} environment variable is required`);
-  }
   
   // Create provider and wallet
   const provider = new ethers.JsonRpcProvider(networkConfig.url);
@@ -122,7 +99,7 @@ async function withdrawFromContract(contractName, networkName, contractAddress, 
   console.log(`💰 Current wallet balance: ${ethers.formatEther(walletBalance)} ${networkConfig.currency}`);
   
   // Read contract ABI
-  const contractPath = join(__dirname, '../artifacts/', contractConfig.artifactPath);
+  const contractPath = join(__dirname, '../artifacts/contracts/MementoVol1.sol/MementoVol1.json');
   const contractJson = JSON.parse(readFileSync(contractPath, 'utf8'));
   
   // Create contract instance
@@ -150,41 +127,15 @@ async function withdrawFromContract(contractName, networkName, contractAddress, 
     return;
   }
   
-  // Prepare withdrawal
-  let withdrawAmount = contractBalance;
-  let tx;
+  // Execute withdrawal
+  console.log(`💸 Withdrawing all funds (${ethers.formatEther(contractBalance)} ${networkConfig.currency})`);
   
-  if (contractConfig.withdrawFunction === "withdraw") {
-    // MementoVol1 - withdraws all funds
-    console.log(`💸 Withdrawing all funds (${ethers.formatEther(contractBalance)} ${networkConfig.currency})`);
-    
-    try {
-      tx = await contract.withdraw();
-    } catch (error) {
-      console.error(`❌ Withdrawal failed: ${error.message}`);
-      return;
-    }
-    
-  } else if (contractConfig.withdrawFunction === "emergencyWithdraw") {
-    // SwarmVault - can specify amount
-    if (amount && amount !== "0" && amount !== "all") {
-      withdrawAmount = ethers.parseEther(amount);
-      if (withdrawAmount > contractBalance) {
-        console.error(`❌ Requested amount (${amount}) exceeds contract balance (${ethers.formatEther(contractBalance)})`);
-        return;
-      }
-      console.log(`💸 Withdrawing ${amount} ${networkConfig.currency}`);
-    } else {
-      console.log(`💸 Withdrawing all funds (${ethers.formatEther(contractBalance)} ${networkConfig.currency})`);
-      withdrawAmount = 0n; // 0 means withdraw all for SwarmVault
-    }
-    
-    try {
-      tx = await contract.emergencyWithdraw(withdrawAmount);
-    } catch (error) {
-      console.error(`❌ Emergency withdrawal failed: ${error.message}`);
-      return;
-    }
+  let tx;
+  try {
+    tx = await contract.withdraw();
+  } catch (error) {
+    console.error(`❌ Withdrawal failed: ${error.message}`);
+    return;
   }
   
   console.log(`⏳ Transaction submitted: ${tx.hash}`);
@@ -212,34 +163,6 @@ async function withdrawFromContract(contractName, networkName, contractAddress, 
   } else {
     console.error("❌ Transaction failed");
   }
-}
-
-function showUsage() {
-  console.log("Usage: npm run withdraw <contract> <network> <address> [amount]");
-  console.log("");
-  console.log("Contracts:");
-  console.log("  mementoVol1  - Memento Vol1 NFT contract (withdraws all funds)");
-  console.log("  swarmVault   - Swarm Vault contract (can specify amount)");
-  console.log("");
-  console.log("Networks:");
-  console.log("  flowTestnet  - Flow EVM Testnet");
-  console.log("  flowMainnet  - Flow EVM Mainnet");
-  console.log("  gnosis       - Gnosis Chain");
-  console.log("");
-  console.log("Examples:");
-  console.log("  # Withdraw all funds from MementoVol1 on Flow Testnet");
-  console.log("  npm run withdraw mementoVol1 flowTestnet 0x1234567890123456789012345678901234567890");
-  console.log("");
-  console.log("  # Withdraw all funds from SwarmVault on Gnosis");
-  console.log("  npm run withdraw swarmVault gnosis 0x1234567890123456789012345678901234567890");
-  console.log("");
-  console.log("  # Withdraw 0.5 xDAI from SwarmVault on Gnosis");
-  console.log("  npm run withdraw swarmVault gnosis 0x1234567890123456789012345678901234567890 0.5");
-  console.log("");
-  console.log("Environment Variables Required:");
-  console.log("  HARDHAT_VAR_FLOW_TESTNET_PRIVATE_KEY  - For Flow Testnet");
-  console.log("  HARDHAT_VAR_FLOW_MAINNET_PRIVATE_KEY  - For Flow Mainnet");
-  console.log("  HARDHAT_VAR_GNOSIS_PRIVATE_KEY        - For Gnosis Chain");
 }
 
 main()
