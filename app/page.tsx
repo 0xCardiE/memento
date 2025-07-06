@@ -14,10 +14,11 @@ function HomePage() {
         {/* Header */}
         <header className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold">
-              <span className="text-white">Memento</span>
-              <span style={{ color: 'var(--accent-primary)' }}>Machina</span>
-            </h1>
+            <img 
+              src="/logo.png" 
+              alt="MementoMachina" 
+              style={{ height: '70px', width: 'auto' }}
+            />
           </div>
           <ConnectButton />
         </header>
