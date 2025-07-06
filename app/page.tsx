@@ -42,7 +42,7 @@ function HomePage() {
         <header className="flex justify-between items-center mb-12">
           <div className="flex items-center gap-4">
             <img 
-              src="/logo.png" 
+              src="logo.png" 
               alt="MementoMachina" 
               style={{ height: '70px', width: 'auto' }}
             />
