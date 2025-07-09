@@ -1,4 +1,4 @@
-require("@nomicfoundation/hardhat-verify");
+require("@nomicfoundation/hardhat-toolbox");
 
 const config = {
   solidity: {

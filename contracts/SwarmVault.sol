@@ -4,6 +4,12 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+// Interface for Swarm PostageStamp contract
+interface IPostageStamp {
+    function topUp(bytes32 batchId) external payable;
+    function remainingBalance(bytes32 batchId) external view returns (uint256);
+}
+
 /**
  * @title SwarmVault
  * @dev A vault contract deployed on Gnosis Chain to manage postage stamp funding
@@ -48,12 +54,6 @@ contract SwarmVault is Ownable, ReentrancyGuard {
     event ThresholdUpdated(uint256 oldThreshold, uint256 newThreshold);
     event TopUpAmountUpdated(uint256 oldAmount, uint256 newAmount);
     event EmergencyWithdrawal(address indexed owner, uint256 amount);
-    
-    // Interface for Swarm PostageStamp contract
-    interface IPostageStamp {
-        function topUp(bytes32 batchId) external payable;
-        function remainingBalance(bytes32 batchId) external view returns (uint256);
-    }
     
     IPostageStamp public postageStamp;
     

@@ -1,7 +1,6 @@
 {
   "name": "mement-machina-vol1",
-  "description": "Memento Machina: Geological Pattern NFT Generator built with Flow, Hardhat 3 and Swarm",
-  "type": "module",
+  "description": "Memento Machina: Geological Pattern NFT Generator built with Flow, Hardhat 2 and Swarm",
   "version": "1.0.0",
   "scripts": {
     "dev": "next dev",
@@ -30,9 +29,8 @@
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^0.15.12",
-    "@nomicfoundation/hardhat-toolbox-viem": "^4.0.0",
-    "@nomicfoundation/hardhat-verify": "^3.0.0-next.21",
-    "@nomicfoundation/hardhat-viem": "^2.0.6",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
     "@openzeppelin/contracts": "^5.1.0",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.2",
@@ -41,14 +39,12 @@
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.3.5",
     "forge-std": "github:foundry-rs/forge-std",
-    "hardhat": "^3.0.0-next.21",
+    "hardhat": "^2.22.0",
     "postcss": "^8.5.6",
     "prettier": "^3.3.3",
-    "typescript": "^5.7.2",
-    "viem": "^2.31.7"
+    "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@nomicfoundation/hardhat-ignition-viem": "^0.15.12",
     "@rainbow-me/rainbowkit": "^2.2.8",
     "@tanstack/react-query": "^5.62.14",
     "axios": "^1.7.9",
